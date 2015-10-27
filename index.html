@@ -165,23 +165,26 @@
                 <div class="bg-white" id="legend">
                     <div class = "legend_row">
                         <div class="color_box" id="color_box1" style="background-color:#13b4ff"></div>
-                        <label id="legendval1">0-900</label>
+                        <label id="legendval1">Loading...</label>
                     </div>
                     <div class = "legend_row">
                         <div class="color_box" id="color_box2" style="background-color:#ab3fdd"></div>
-                        <label id="legendval2">0-900</label>
+                        <label id="legendval2">Loading...</label>
                     </div>
                     <div class = "legend_row">
                         <div class="color_box" id="color_box3" style="background-color:#ae163e"></div>
-                        <label id="legendval3">0-900</label>
+                        <label id="legendval3">Loading...</label>
                     </div>
                     <div class = "legend_row">
                         <div class="color_box" id="color_box4" style="background-color:#ae163e"></div>
-                        <label id="legendval4">0-900</label>
+                        <label id="legendval4">Loading...</label>
                     </div>
                     <div class = "legend_row">
                         <div class="color_box" id="color_box5" style="background-color:#ae163e"></div>
-                        <label id="legendval5">0-900</label>
+                        <label id="legendval5">Loading...</label>
+                    </div>
+                    <div>
+                        <label id="units"></label>
                     </div>
                 </div>
             </div>
@@ -195,8 +198,8 @@
 
                 <script>
                     //Width and height
-                    var width = 600;
-                    var height = 600;
+                    var width = document.getElementById("d3window").offsetWidth;
+                    var height = 650;
 
                     //COLORS
                     var num_colors = 5;
@@ -222,6 +225,7 @@
                         document.getElementById("color_box"+[i]).style.backgroundColor = this["color"+[i]];
                     }
 
+                    //variables to access json
                     var a_unit = "HR";
                     var var_selection = "total_water_use";
                     var year = "1998";
@@ -258,16 +262,9 @@
                                     max = json.features[i].properties[property];
                                 }
                             }//find min and max
-
                             color.domain([min, max]);
 
-                            for(var i = 1; i <= num_colors; i++) {
-                                var str = Math.floor(((max-min)/num_colors)*i);
-                                document.getElementById("legendval"+[i]).innerHTML = [str];
-                            }
-
-                            console.log(min);
-                            console.log(max);
+                            updateLegend(min, max, var_selection);
 
 
                             //Map Making
@@ -341,6 +338,8 @@
                                     }//find min and max
                                     color.domain([min, max]);
 
+                                    updateLegend(min, max, var_selection);
+
                                     //render again
                                     svg.selectAll("path")
                                             .transition()
@@ -362,7 +361,7 @@
 
 
                             //User changed "Year"
-                            $("#slider").on("slide", function (slideEvt) {
+                            $("#slider").on("slide slideStop", function (slideEvt) {
                                 year = (slideEvt.value);
                                 property = var_selection + '_' + year; //update property
 
@@ -380,6 +379,10 @@
                                     }
                                 }//find min and max
                                 color.domain([min, max]);
+
+                                console.log(min);
+                                console.log(max);
+                                updateLegend(min, max, var_selection);
 
                                 //render again
                                 svg.selectAll("path")
@@ -399,8 +402,49 @@
                                         });
                             });
 
-                        });
+                            function updateLegend(min, max, var_selection){
+
+                                for(var i = 1; i <= num_colors; i++) {
+                                    var str = Math.floor(((max-min)/num_colors)*(i-1) + min);
+                                    str += "-";
+                                    if(i < num_colors)
+                                        str += Math.floor(((max - min) / num_colors) * (i) + min - 1);
+                                    else
+                                        str += Math.floor(((max - min) / num_colors) * (i) + min);
+
+                                    document.getElementById("legendval"+[i]).innerHTML = [str];
+                                }//update intervals
+
+                                //update units
+                                var units;
+                                if(var_selection == "total_water_use"){
+                                    units = "Thousand Acre Feet";
+                                }
+                                switch(var_selection){
+                                    case "total_water_use":
+                                        units = "Thousand Acre Feet";
+                                        break;
+                                    case "total_irrigated_crop_area":
+                                        units = "Thousand Acre";
+                                        break;
+                                    case "applied_water_per_acre":
+                                        units = "Acre-Foot Per Acre"
+                                        break;
+                                    case "evapotranspiration_of_applied_water_per_acre":
+                                        units = "Acre-Foot Per Acre"
+                                        break;
+                                    default:
+                                        units = "Units"
+
+                                }
+                                document.getElementById("units").innerHTML = '*' + units;
+                            }//update legend intervals and units
+
+                        }); //load analysis unit
+
                     }//updateMap()
+
+
 
 
 
@@ -410,6 +454,9 @@
         </div>
 
     </div>
+
+    <p>Data was taken from California Department of Water Resources
+        http://www.water.ca.gov/landwateruse/anaglwu.cfm#</p>
 
 </div> <!-- /container -->
 
