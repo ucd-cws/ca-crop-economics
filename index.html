@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>California Crop Economics</title>
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="bootstrap-3.3.5-dist/css/bootstrap.min.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="bootstrap-3.3.5-dist/css/bootstrap-theme.min.css">
+    <!-- Latest compiled and minified bootstrap JavaScript -->
+    <script src="bootstrap-3.3.5-dist/js/bootstrap.min.js"></script>
+    <!-- Slider bar css -->
+    <link rel="stylesheet" href="bootstrap-slider-master/css/bootstrap-slider.css">
+    <!-- Slider bar js -->
+    <script src="bootstrap-slider-master/js/bootstrap-slider.js"></script>
+    <!-- d3 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+
+
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+<div class="container">
+
+    <!-- Static navbar -->
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Project name</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">Home</a></li>
+                    <li><a href="#">About</a></li>
+                    <li><a href="#">Contact</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">Action</a></li>
+                            <li><a href="#">Another action</a></li>
+                            <li><a href="#">Something else here</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li class="dropdown-header">Nav header</li>
+                            <li><a href="#">Separated link</a></li>
+                            <li><a href="#">One more separated link</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="active"><a href="./">Default <span class="sr-only">(current)</span></a></li>
+                    <li><a href="../navbar-static-top/">Static top</a></li>
+                    <li><a href="../navbar-fixed-top/">Fixed top</a></li>
+                </ul>
+            </div><!--/.nav-collapse -->
+        </div><!--/.container-fluid -->
+    </nav>
+
+    <!-- Main component for a primary marketing message or call to action -->
+    <div class="jumbotron">
+        <h2>California Crop Economics</h2>
+
+        <!-- Control bar -->
+        <div class="row bg-info">
+
+            <!-- Analysis Unit Control-->
+            <div class="col-md-3">
+                <label class="control-label">Analysis Unit</label>
+                <form class="form-horizontal">
+                    <fieldset>
+                        <div class="form-group">
+                            <div class="col-xs-9">
+                                <div class="radio">
+                                    <label>
+                                        <input id="rd1" name="a_unit_radio" value="HR" type="radio" checked="checked">
+                                        Hydrologic Region</label>
+                                </div>
+                                <div class="radio">
+                                    <label>
+                                        <input id="rd2" name="a_unit_radio" value="PA" type="radio">
+                                        Planning Area</label>
+                                </div>
+                                <div class="radio">
+                                    <label>
+                                        <input id="rd3" name="a_unit_radio" value="DAU" type="radio">
+                                        Detailed Analysis Unit</label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+
+            <!-- Variables Control-->
+            <div class="col-md-3">
+                <label class="control-label">Variables</label>
+                <form class="form-horizontal" id="variablelist">
+                    <fieldset>
+                        <div class="form-group">
+                            <div class="col-xs-12">
+                                <div class="radio">
+                                    <label>
+                                        <input id="rd4" name="variables" value="total_water_use" type="radio" checked="checked">
+                                        Total Water Use</label>
+                                </div>
+                                <div class="radio">
+                                    <label>
+                                        <input id="rd5" name="variables" value="total_irrigated_crop_area" type="radio">
+                                        Total Irrigated Crop Area</label>
+                                </div>
+                                <div class="radio">
+                                    <label>
+                                        <input id="rd6" name="variables" value="applied_water_per_acre" type="radio">
+                                        Applied Water Per Acre</label>
+                                </div>
+                                <div class="radio">
+                                    <label>
+                                        <input id="rd7" name="variables" value="evapotranspiration_of_applied_water_per_acre" type="radio">
+                                        ET of Applied Water Per Acre</label>
+                                </div>
+                                <div class="radio">
+                                    <label>
+                                        <input id="rd8" name="variables" value="option1" type="radio">
+                                        Total Revenue</label>
+                                </div>
+                                <div class="radio">
+                                    <label>
+                                        <input id="rd9" name="variables" value="option1" type="radio">
+                                        Revenue Per Acre</label>
+                                </div>
+                                <div class="radio">
+                                    <label>
+                                        <input id="rd10" name="variables" value="option1" type="radio">
+                                        Revenue Per Applied Water</label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+
+            <!-- Year Slider -->
+            <div class="col-md-3">
+                <label class="control-label">Year</label>
+                <input id="slider" type="text" data-slider-min="1998" data-slider-max="2010" data-slider-step="1" data-slider-value="1998">
+                <span id="sliderCurrentSliderValLabel">Selected Year: <span id="sliderSliderVal">1998</span></span>
+                <script>
+                    $("#slider").slider();
+                    $("#slider").on("slide", function(slideEvt) {
+                        $("#sliderSliderVal").text(slideEvt.value);
+                     });
+                </script>
+            </div>
+
+            <!-- Legend -->
+            <div class="col-md-3">
+                <label class="control-label">Legend</label>
+                <div class="bg-white" id="legend">
+                    <div class = "legend_row">
+                        <div class="color_box" id="color_box1" style="background-color:#13b4ff"></div>
+                        <label id="legendval1">0-900</label>
+                    </div>
+                    <div class = "legend_row">
+                        <div class="color_box" id="color_box2" style="background-color:#ab3fdd"></div>
+                        <label id="legendval2">0-900</label>
+                    </div>
+                    <div class = "legend_row">
+                        <div class="color_box" id="color_box3" style="background-color:#ae163e"></div>
+                        <label id="legendval3">0-900</label>
+                    </div>
+                    <div class = "legend_row">
+                        <div class="color_box" id="color_box4" style="background-color:#ae163e"></div>
+                        <label id="legendval4">0-900</label>
+                    </div>
+                    <div class = "legend_row">
+                        <div class="color_box" id="color_box5" style="background-color:#ae163e"></div>
+                        <label id="legendval5">0-900</label>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- Render window for d3 -->
+        <div class="row" id="d3window">
+            <div class="col-md-12 bg-white">
+
+                <script>
+                    //Width and height
+                    var width = 600;
+                    var height = 600;
+
+                    //COLORS
+                    var num_colors = 5;
+                    var color1 = "rgb(237,248,233)";
+                    var color2 = "rgb(186,228,179)";
+                    var color3 = "rgb(116,196,118)";
+                    var color4 = "rgb(49,163,84)";
+                    var color5 = "rgb(0,109,44)";
+
+
+                    //Create SVG element
+                    var svg = d3.select("#d3window")
+                            .append("svg")
+                            .attr("width", width)
+                            .attr("height", height);
+
+                    //colors for cloropleth
+                    var color = d3.scale.quantize()
+                            .range([ color1, color2, color3, color4, color5]);
+
+                    //show legend colors
+                    for(var i = 1; i <= num_colors; i++) {
+                        document.getElementById("color_box"+[i]).style.backgroundColor = this["color"+[i]];
+                    }
+
+                    var a_unit = "HR";
+                    var var_selection = "total_water_use";
+                    var year = "1998";
+                    var property = var_selection + '_' + year;
+
+                    updateMap(a_unit);
+
+                    //analysis unit radio button listeners
+                    var au = document.getElementsByName('a_unit_radio');
+                    for (var i = au.length; i--;) {
+                        au[i].onchange = function () {
+                            a_unit = this.value;
+                            //d3.select('svg').text('')
+                            d3.selectAll("path").remove();
+                            updateMap(a_unit);
+                        }
+                    }
+
+
+                    //Load in GeoJSON data, set callback function
+                    function updateMap(analysis_unit)
+                    {
+                        d3.json(analysis_unit + ".geojson", function (json) {
+
+                            //Making chloropleth, filling based on data
+                            //dynamically update the color scale
+                            var min = json.features[0].properties[property],
+                                    max = json.features[0].properties[property];
+                            for (var i = 0; i < json.features.length; i++) {
+                                if (json.features[i].properties[property] < min) {
+                                    min = json.features[i].properties[property];
+                                }
+                                if (json.features[i].properties[property] > max) {
+                                    max = json.features[i].properties[property];
+                                }
+                            }//find min and max
+
+                            color.domain([min, max]);
+
+                            for(var i = 1; i <= num_colors; i++) {
+                                var str = Math.floor(((max-min)/num_colors)*i);
+                                document.getElementById("legendval"+[i]).innerHTML = [str];
+                            }
+
+                            console.log(min);
+                            console.log(max);
+
+
+                            //Map Making
+                            var center = d3.geo.centroid(json);
+                            var scale = 150;
+                            var offset = [width / 2, height / 2];
+                            var projection = d3.geo.mercator()
+                                    .translate(offset)
+                                    .center(center)
+                                    .scale(scale);
+
+                            //Define path generator
+                            var path = d3.geo.path().projection(projection);
+
+                            // using the path determine the bounds of the current map and use
+                            // these to determine better values for the scale and translation
+                            var bounds = path.bounds(json);
+                            var hscale = scale * width / (bounds[1][0] - bounds[0][0]);
+                            var vscale = scale * height / (bounds[1][1] - bounds[0][1]);
+                            var scale = (hscale < vscale) ? hscale : vscale;
+                            var offset = [width - (bounds[0][0] + bounds[1][0]) / 2,
+                                height - (bounds[0][1] + bounds[1][1]) / 2];
+
+                            // new projection
+                            projection = d3.geo.mercator().center(center)
+                                    .scale(scale).translate(offset);
+                            path = path.projection(projection);
+
+                            // add a rectangle to see the bound of the svg
+                            svg.append("rect").attr('width', width).attr('height', height)
+                                    .style('stroke', 'black').style('fill', 'none');
+
+                            //Create one path per GeoJSON feature, SVG rendering
+                            svg.selectAll("path")
+                                    .data(json.features)
+                                    .enter()
+                                    .append("path")
+                                    .attr("d", path)
+                                    .attr("stroke", "#555")
+                                    .style("fill", function (d) {
+                                        //Get data value
+                                        var value = d.properties[property];
+
+                                        if (value) {
+                                            //If value exists…
+                                            return color(value);
+                                        } else {
+                                            //If value is undefined…
+                                            return "#ccc";
+                                        }
+                                    });
+
+                            //update values to be displayed based on what is selected
+                            //User changed "Variables"
+                            var ch = document.getElementsByName('variables');
+                            for (var i = ch.length; i--;) {
+                                ch[i].onchange = function () {
+                                    var_selection = this.value;
+                                    property = var_selection + '_' + year;
+
+                                    //dynamically update the color scale
+                                    var min = json.features[0].properties[property],
+                                            max = json.features[0].properties[property];
+                                    for (var i = 0; i < json.features.length; i++) {
+                                        if (json.features[i].properties[property] < min) {
+                                            min = json.features[i].properties[property];
+                                        }
+                                        if (json.features[i].properties[property] > max) {
+                                            max = json.features[i].properties[property];
+                                        }
+                                    }//find min and max
+                                    color.domain([min, max]);
+
+                                    //render again
+                                    svg.selectAll("path")
+                                            .transition()
+                                            .duration(100)
+                                            .style("fill", function (d) {
+                                                //Get data value
+                                                var value = d.properties[property];
+
+                                                if (value) {
+                                                    //If value exists…
+                                                    return color(value);
+                                                } else {
+                                                    //If value is undefined…
+                                                    return "#ccc";
+                                                }
+                                            });
+                                }
+                            }
+
+
+                            //User changed "Year"
+                            $("#slider").on("slide", function (slideEvt) {
+                                year = (slideEvt.value);
+                                property = var_selection + '_' + year; //update property
+
+                                //console.log(property);
+
+                                //dynamically update the color scale
+                                var min = json.features[0].properties[property],
+                                        max = json.features[0].properties[property];
+                                for (var i = 0; i < json.features.length; i++) {
+                                    if (json.features[i].properties[property] < min) {
+                                        min = json.features[i].properties[property];
+                                    }
+                                    if (json.features[i].properties[property] > max) {
+                                        max = json.features[i].properties[property];
+                                    }
+                                }//find min and max
+                                color.domain([min, max]);
+
+                                //render again
+                                svg.selectAll("path")
+                                        //.transition()
+                                        //.duration(100)
+                                        .style("fill", function (d) {
+                                            //Get data value
+                                            var value = d.properties[property];
+
+                                            if (value) {
+                                                //If value exists…
+                                                return color(value);
+                                            } else {
+                                                //If value is undefined…
+                                                return "#ccc";
+                                            }
+                                        });
+                            });
+
+                        });
+                    }//updateMap()
+
+
+
+                </script>
+
+            </div>
+        </div>
+
+    </div>
+
+</div> <!-- /container -->
+
+</body>
+</html>

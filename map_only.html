@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+<script>
+
+    //Width and height
+    var w = 600;
+    var h = 600;
+    //set projection, center, and scale it
+    var projection = d3.geo.mercator()
+            .translate([w/2, h/2])
+            .scale([100]);
+    //Define path generator
+    var path = d3.geo.path().projection(projection);
+    //Create SVG element
+    var svg = d3.select("body")
+            .append("svg")
+            .attr("width", w)
+            .attr("height", h);
+
+    // Compute the bounds of a feature of interest, then derive scale & translate.
+    var b = path.bounds(state),
+            s = .95 / Math.max((b[1][0] - b[0][0]) / w, (b[1][1] - b[0][1]) / h),
+            t = [(w - s * (b[1][0] + b[0][0])) / 2, (h - s * (b[1][1] + b[0][1])) / 2];
+
+    projection.scale(s).translate(t);
+
+    //Load in GeoJSON data, set callback function
+    //d3.json("one_obj_geojson.json", function(json) {
+    d3.json("sample_geojson_2.json", function(json) {
+
+        //Bind data and create one path per GeoJSON feature
+        svg.selectAll("path")
+                .data(json.features)
+                .enter()
+                .append("path")
+                .attr("d", path);
+
+    });
+
+    console.log("I like cats.");
+
+</script>
