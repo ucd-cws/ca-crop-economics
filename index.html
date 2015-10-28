@@ -196,6 +196,12 @@
         <div class="row" id="d3window">
             <div class="col-md-12 bg-white">
 
+                <!-- Tooltip -->
+                <div id="tooltip" class="hidden">
+                    <p><strong id="title">Loading...</strong></p>
+                    <span id="value"></span>
+                </div>
+
                 <script>
                     //Width and height
                     var width = document.getElementById("d3window").offsetWidth;
@@ -209,29 +215,21 @@
                     var color4 = "rgb(49,163,84)";
                     var color5 = "rgb(0,109,44)";
 
-
-                    //Create SVG element
-                    var svg = d3.select("#d3window")
-                            .append("svg")
-                            .attr("width", width)
-                            .attr("height", height);
-
-                    //colors for cloropleth
-                    var color = d3.scale.quantize()
-                            .range([ color1, color2, color3, color4, color5]);
-
-                    //show legend colors
-                    for(var i = 1; i <= num_colors; i++) {
-                        document.getElementById("color_box"+[i]).style.backgroundColor = this["color"+[i]];
-                    }
-
                     //variables to access json
                     var a_unit = "HR";
                     var var_selection = "total_water_use";
                     var year = "1998";
                     var property = var_selection + '_' + year;
 
-                    updateMap(a_unit);
+                    //colors for cloropleth
+                    var color = d3.scale.quantize()
+                            .range([ color1, color2, color3, color4, color5]);
+
+
+                    //show legend colors
+                    for(var i = 1; i <= num_colors; i++) {
+                        document.getElementById("color_box"+[i]).style.backgroundColor = this["color"+[i]];
+                    }
 
                     //analysis unit radio button listeners
                     var au = document.getElementsByName('a_unit_radio');
@@ -244,6 +242,13 @@
                         }
                     }
 
+                    //Create SVG element
+                    var svg = d3.select("#d3window")
+                            .append("svg")
+                            .attr("width", width)
+                            .attr("height", height);
+
+                    updateMap(a_unit);
 
                     //Load in GeoJSON data, set callback function
                     function updateMap(analysis_unit)
@@ -265,7 +270,6 @@
                             color.domain([min, max]);
 
                             updateLegend(min, max, var_selection);
-
 
                             //Map Making
                             var center = d3.geo.centroid(json);
@@ -304,7 +308,7 @@
                                     .append("path")
                                     .attr("d", path)
                                     .attr("stroke", "#555")
-                                    .style("fill", function (d) {
+                                    .attr("fill", function (d) {
                                         //Get data value
                                         var value = d.properties[property];
 
@@ -315,7 +319,61 @@
                                             //If value is undefined…
                                             return "#ccc";
                                         }
-                                    });
+                                    })
+                                    .on("mouseover", function(d){
+                                        d3.select(this)
+                                                .attr("fill", "orange");
+
+                                        //Get this bar's x/y values, then augment for the tooltip
+                                        var cur_width = document.getElementById("d3window").offsetWidth;
+                                        var xPosition = cur_width*0.6;
+                                        var yPosition = 10;
+
+                                        //Update the tooltip position and value
+                                        var full_name;
+                                        switch(analysis_unit){
+                                            case "HR":
+                                                full_name = "hyrdologic_region";
+                                                break;
+                                            case "PA":
+                                                full_name = "planning_area";
+                                                break;
+                                            case "DAU":
+                                                full_name = "detailed_analysis_unit";
+                                                break;
+                                        }
+                                        var region_name = full_name+"_name"
+
+                                        console.log(region_name);
+                                        d3.select("#tooltip").select("#title").text( d.properties[region_name]);
+                                        d3.select("#tooltip")
+                                                .style("left", xPosition + "px")
+                                                .style("top", yPosition + "px")
+                                                .select("#value")
+                                                .text("yoyoyo");
+
+                                        //Show the tooltip
+                                        d3.select("#tooltip").classed("hidden", false);
+                                    })
+                                    .on("mouseout", function(d){
+                                        d3.select(this)
+                                                .transition()
+                                                .duration(250)
+                                                .attr("fill", function (d) {
+                                                    //Get data value
+                                                    var value = d.properties[property];
+
+                                                    if (value) {
+                                                        //If value exists…
+                                                        return color(value);
+                                                    } else {
+                                                        //If value is undefined…
+                                                        return "#ccc";
+                                                    }
+                                                })
+                                        //Hide the tooltip
+                                        d3.select("#tooltip").classed("hidden", true);
+                                    })
 
                             //update values to be displayed based on what is selected
                             //User changed "Variables"
@@ -344,7 +402,7 @@
                                     svg.selectAll("path")
                                             .transition()
                                             .duration(100)
-                                            .style("fill", function (d) {
+                                            .attr("fill", function (d) {
                                                 //Get data value
                                                 var value = d.properties[property];
 
@@ -388,7 +446,7 @@
                                 svg.selectAll("path")
                                         //.transition()
                                         //.duration(100)
-                                        .style("fill", function (d) {
+                                        .attr("fill", function (d) {
                                             //Get data value
                                             var value = d.properties[property];
 
