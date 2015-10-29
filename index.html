@@ -342,15 +342,26 @@
                                                 full_name = "detailed_analysis_unit";
                                                 break;
                                         }
-                                        var region_name = full_name+"_name"
 
-                                        console.log(region_name);
+                                        //update tooltip inside text
+                                        var region_name = full_name+"_name"
+                                        var tmp_var = "total_water_use_"+year;
+                                        var tmp_info = "<b>" + "TWU: " + "</b>" + d.properties[tmp_var] + " TAF";
+                                        tmp_var = "total_irrigated_crop_area_"+year;
+                                        tmp_info += "<br/><b>" + "TICA: " + "</b>" +d.properties[tmp_var] + " TA";
+                                        tmp_var = "applied_water_per_acre_"+year;
+                                        tmp_info += "<br/><b>" + "AWPA: " + "</b>"+ d.properties[tmp_var] + " AFPA"
+                                        tmp_var = "evapotranspiration_of_applied_water_"+year;
+                                        tmp_info += "<br/><b>" + "ETAW: " + "</b>"+ d.properties[tmp_var] + " AFPA"
+
+                                        var info = tmp_info;
+
                                         d3.select("#tooltip").select("#title").text( d.properties[region_name]);
                                         d3.select("#tooltip")
                                                 .style("left", xPosition + "px")
                                                 .style("top", yPosition + "px")
                                                 .select("#value")
-                                                .text("yoyoyo");
+                                                .html(info);
 
                                         //Show the tooltip
                                         d3.select("#tooltip").classed("hidden", false);
