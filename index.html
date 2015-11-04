@@ -92,6 +92,11 @@
                                         <input id="rd3" name="a_unit_radio" value="DAU" type="radio">
                                         Detailed Analysis Unit</label>
                                 </div>
+                                <div class="radio">
+                                    <label>
+                                        <input id="rd3b" name="a_unit_radio" value="Revenue" type="radio">
+                                        Revenue regions</label>
+                                </div>
                             </div>
                         </div>
                     </fieldset>
@@ -105,39 +110,39 @@
                     <fieldset>
                         <div class="form-group">
                             <div class="col-xs-12">
-                                <div class="radio">
+                                <div class="radio notrev">
                                     <label>
                                         <input id="rd4" name="variables" value="total_water_use" type="radio" checked="checked">
                                         Total Water Use</label>
                                 </div>
-                                <div class="radio">
+                                <div class="radio notrev">
                                     <label>
                                         <input id="rd5" name="variables" value="total_irrigated_crop_area" type="radio">
                                         Total Irrigated Crop Area</label>
                                 </div>
-                                <div class="radio">
+                                <div class="radio notrev">
                                     <label>
                                         <input id="rd6" name="variables" value="applied_water_per_acre" type="radio">
                                         Applied Water Per Acre</label>
                                 </div>
-                                <div class="radio">
+                                <div class="radio notrev">
                                     <label>
                                         <input id="rd7" name="variables" value="evapotranspiration_of_applied_water_per_acre" type="radio">
                                         ET of Applied Water Per Acre</label>
                                 </div>
-                                <div class="radio">
+                                <div class="radio rev" style="visibility:hidden">
                                     <label>
-                                        <input id="rd8" name="variables" value="option1" type="radio">
+                                        <input id="rd8" name="variables" value="total_revenue" type="radio">
                                         Total Revenue</label>
                                 </div>
-                                <div class="radio">
+                                <div class="radio rev" style="visibility:hidden;">
                                     <label>
-                                        <input id="rd9" name="variables" value="option1" type="radio">
+                                        <input id="rd9" name="variables" value="revenue_per_acre" type="radio">
                                         Revenue Per Acre</label>
                                 </div>
-                                <div class="radio">
+                                <div class="radio rev" style="visibility:hidden;">
                                     <label>
-                                        <input id="rd10" name="variables" value="option1" type="radio">
+                                        <input id="rd10" name="variables" value="revenue_per_applied_water" type="radio">
                                         Revenue Per Applied Water</label>
                                 </div>
                             </div>
@@ -238,6 +243,43 @@
                             a_unit = this.value;
                             //d3.select('svg').text('')
                             d3.selectAll("path").remove();
+                            if(a_unit == "Revenue"){
+                                console.log("reve");
+
+                                //hide other buttons
+                                var cols = document.getElementsByClassName('notrev');
+                                for(i=0; i<cols.length; i++) {
+                                    cols[i].style.display = "none";
+                                }
+
+                                //make revenue buttons visible
+                                var cols = document.getElementsByClassName('rev');
+                                for(i=0; i<cols.length; i++) {
+                                    cols[i].style.display = "block";
+                                    cols[i].style.visibility = "visible";
+                                }
+
+                                //check first radio
+                                document.getElementById("rd4").style.checked = false
+                                document.getElementById("rd8").style.checked = true;
+
+                            }//if revenue selected
+                            else{
+                                //hide revenue buttons
+                                var cols = document.getElementsByClassName('rev');
+                                for(i=0; i<cols.length; i++) {
+                                    cols[i].style.display = "none";
+                                    cols[i].style.visibility = "hidden";
+                                }
+
+                                //make revenue buttons visible
+                                var cols = document.getElementsByClassName('notrev');
+                                for(i=0; i<cols.length; i++) {
+                                    cols[i].style.display = "block";
+                                }
+                                document.getElementById("rd4").style.checked = true;
+                                document.getElementById("rd8").style.checked = false;
+                            }//if nonrevenue selected
                             updateMap(a_unit);
                         }
                     }
@@ -346,7 +388,8 @@
                                         //update tooltip inside text
                                         var region_name = full_name+"_name"
                                         var tmp_var = "total_water_use_"+year;
-                                        var tmp_info = "<b>" + "TWU: " + "</b>" + d.properties[tmp_var] + " TAF";
+                                        var tmp_info = "<b>" + "Year: " + "</b>" + year;
+                                        tmp_info += "<br/><b>" + "TWU: " + "</b>" + d.properties[tmp_var] + " TAF";
                                         tmp_var = "total_irrigated_crop_area_"+year;
                                         tmp_info += "<br/><b>" + "TICA: " + "</b>" +d.properties[tmp_var] + " TA";
                                         tmp_var = "applied_water_per_acre_"+year;
