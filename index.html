@@ -244,8 +244,6 @@
                             //d3.select('svg').text('')
                             d3.selectAll("path").remove();
                             if(a_unit == "Revenue"){
-                                console.log("reve");
-
                                 //hide other buttons
                                 var cols = document.getElementsByClassName('notrev');
                                 for(i=0; i<cols.length; i++) {
@@ -259,9 +257,13 @@
                                     cols[i].style.visibility = "visible";
                                 }
 
-                                //check first radio
-                                document.getElementById("rd4").style.checked = false
-                                document.getElementById("rd8").style.checked = true;
+                                $("#rd8").prop("checked", true); //check first option
+                                var mySlider = $("#slider").slider();
+                                mySlider.slider('setValue', 2010); //set slider val
+                                $("#slider").slider("disable"); //disable sliding
+                                $("#sliderSliderVal").text(2010);
+
+                                updateMap(a_unit);
 
                             }//if revenue selected
                             else{
@@ -277,10 +279,14 @@
                                 for(i=0; i<cols.length; i++) {
                                     cols[i].style.display = "block";
                                 }
-                                document.getElementById("rd4").style.checked = true;
-                                document.getElementById("rd8").style.checked = false;
+
+                                $("#rd4").prop("checked", true); //check first option
+                                var mySlider = $("#slider").slider();
+                                $("#slider").slider("enable"); //enable sliding
+
+                                updateMap(a_unit);
                             }//if nonrevenue selected
-                            updateMap(a_unit);
+
                         }
                     }
 
@@ -296,6 +302,15 @@
                     function updateMap(analysis_unit)
                     {
                         d3.json(analysis_unit + ".geojson", function (json) {
+
+                            //choose property
+                            if(a_unit == "Revenue"){
+                                var_selection = "total_revenue";
+                                property = var_selection;
+                            }
+                            else {
+                                property = var_selection + '_' + year;
+                            }
 
                             //Making chloropleth, filling based on data
                             //dynamically update the color scale
@@ -385,17 +400,29 @@
                                                 break;
                                         }
 
-                                        //update tooltip inside text
-                                        var region_name = full_name+"_name"
-                                        var tmp_var = "total_water_use_"+year;
-                                        var tmp_info = "<b>" + "Year: " + "</b>" + year;
-                                        tmp_info += "<br/><b>" + "TWU: " + "</b>" + d.properties[tmp_var] + " TAF";
-                                        tmp_var = "total_irrigated_crop_area_"+year;
-                                        tmp_info += "<br/><b>" + "TICA: " + "</b>" +d.properties[tmp_var] + " TA";
-                                        tmp_var = "applied_water_per_acre_"+year;
-                                        tmp_info += "<br/><b>" + "AWPA: " + "</b>"+ d.properties[tmp_var] + " AFPA"
-                                        tmp_var = "evapotranspiration_of_applied_water_"+year;
-                                        tmp_info += "<br/><b>" + "ETAW: " + "</b>"+ d.properties[tmp_var] + " AFPA"
+                                        var tmp_info = "";
+                                        if(a_unit != "Revenue") {
+                                            //update tooltip inside text
+                                            var region_name = full_name + "_name"
+                                            var tmp_var = "total_water_use_" + year;
+                                            tmp_info = "<b>" + "Year: " + "</b>" + year;
+                                            tmp_info += "<br/><b>" + "TWU: " + "</b>" + d.properties[tmp_var] + " TAF";
+                                            tmp_var = "total_irrigated_crop_area_" + year;
+                                            tmp_info += "<br/><b>" + "TICA: " + "</b>" + d.properties[tmp_var] + " TA";
+                                            tmp_var = "applied_water_per_acre_" + year;
+                                            tmp_info += "<br/><b>" + "AWPA: " + "</b>" + d.properties[tmp_var] + " AFPA"
+                                            tmp_var = "evapotranspiration_of_applied_water_" + year;
+                                            tmp_info += "<br/><b>" + "ETAW: " + "</b>" + d.properties[tmp_var] + " AFPA"
+                                        }
+                                        else if(a_unit == "Revenue"){
+                                            var tmp_var = "total_revenue";
+                                            tmp_info = "<b>" + "Year: 2010" + "</b>";
+                                            tmp_info += "<br/><b>" + "TR: " + "</b>$" + d.properties[tmp_var];
+                                            tmp_var = "revenue_per_acre";
+                                            tmp_info += "<br/><b>" + "RPA: " + "</b>$" + d.properties[tmp_var] + "/acre";
+                                            tmp_var = "revenue_per_applied_water";
+                                            tmp_info += "<br/><b>" + "RPAW: " + "</b>$" + d.properties[tmp_var] + "/AF";
+                                        }
 
                                         var info = tmp_info;
 
@@ -435,7 +462,13 @@
                             for (var i = ch.length; i--;) {
                                 ch[i].onchange = function () {
                                     var_selection = this.value;
-                                    property = var_selection + '_' + year;
+
+                                    if(a_unit == "Revenue"){
+                                        property = var_selection;
+                                    }
+                                    else {
+                                        property = var_selection + '_' + year;
+                                    }
 
                                     //dynamically update the color scale
                                     var min = json.features[0].properties[property],
@@ -555,9 +588,6 @@
                         }); //load analysis unit
 
                     }//updateMap()
-
-
-
 
 
                 </script>
