@@ -154,8 +154,8 @@
             <!-- Year Slider -->
             <div class="col-md-3">
                 <label class="control-label">Year</label>
-                <input id="slider" type="text" data-slider-min="1998" data-slider-max="2010" data-slider-step="1" data-slider-value="1998">
-                <span id="sliderCurrentSliderValLabel">Selected Year: <span id="sliderSliderVal">1998</span></span>
+                <input id="slider" type="text" data-slider-min="1998" data-slider-max="2010" data-slider-step="1" data-slider-value="2010">
+                <span id="sliderCurrentSliderValLabel">Selected Year: <span id="sliderSliderVal">2010</span></span>
                 <script>
                     $("#slider").slider();
                     $("#slider").on("slide", function(slideEvt) {
@@ -223,7 +223,7 @@
                     //variables to access json
                     var a_unit = "HR";
                     var var_selection = "total_water_use";
-                    var year = "1998";
+                    var year = "2010";
                     var property = var_selection + '_' + year;
 
                     //colors for cloropleth
@@ -283,7 +283,7 @@
                                 $("#rd4").prop("checked", true); //check first option
                                 var mySlider = $("#slider").slider();
                                 $("#slider").slider("enable"); //enable sliding
-
+                                
                                 updateMap(a_unit);
                             }//if nonrevenue selected
 
@@ -304,29 +304,53 @@
                         d3.json(analysis_unit + ".geojson", function (json) {
 
                             //choose property
-                            if(a_unit == "Revenue"){
+                            if(analysis_unit == "Revenue"){
                                 var_selection = "total_revenue";
                                 property = var_selection;
                             }
                             else {
+                                var_selection = "total_water_use";
+                                var mySlider = $("#slider").slider();
+                                year = mySlider.slider('getValue');
                                 property = var_selection + '_' + year;
                             }
 
                             //Making chloropleth, filling based on data
-                            //dynamically update the color scale
-                            var min = json.features[0].properties[property],
-                                    max = json.features[0].properties[property];
-                            for (var i = 0; i < json.features.length; i++) {
-                                if (json.features[i].properties[property] < min) {
-                                    min = json.features[i].properties[property];
-                                }
-                                if (json.features[i].properties[property] > max) {
-                                    max = json.features[i].properties[property];
-                                }
-                            }//find min and max
-                            color.domain([min, max]);
+                            //update the color scale to account for all years of the property
 
-                            updateLegend(min, max, var_selection);
+                            if(analysis_unit == "Revenue") {
+                                var min = json.features[0].properties[property],
+                                    max = json.features[0].properties[property];
+                                for (var i = 0; i < json.features.length; i++) {
+                                    if (json.features[i].properties[property] < min) {
+                                        min = json.features[i].properties[property];
+                                    }
+                                    if (json.features[i].properties[property] > max) {
+                                        max = json.features[i].properties[property];
+                                    }
+                                }//find min and max
+                                color.domain([min, max]);
+
+                                updateLegend(min, max, var_selection);
+                            }
+                            else {
+                                var min = json.features[0].properties[property],
+                                    max = json.features[0].properties[property];
+                                for (var yr = 1998; yr < 2010; yr++) {
+
+                                    var loop_prop = var_selection + '_' + yr;
+                                    for (var i = 0; i < json.features.length; i++) {
+                                        if (json.features[i].properties[loop_prop] < min) {
+                                            min = json.features[i].properties[loop_prop];
+                                        }
+                                        if (json.features[i].properties[loop_prop] > max) {
+                                            max = json.features[i].properties[loop_prop];
+                                        }
+                                    }//find min and max
+                                }
+                                color.domain([min, max]);
+                                updateLegend(min, max, var_selection);
+                            }
 
                             //Map Making
                             var center = d3.geo.centroid(json);
@@ -417,11 +441,23 @@
                                         else if(a_unit == "Revenue"){
                                             var tmp_var = "total_revenue";
                                             tmp_info = "<b>" + "Year: 2010" + "</b>";
-                                            tmp_info += "<br/><b>" + "TR: " + "</b>$" + d.properties[tmp_var];
+                                            tmp_info += "<br/><b>" + "TR: " + "</b>$";
+                                            if(d.properties[tmp_var] != null) //check null
+                                                tmp_info += Math.round(d.properties[tmp_var]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); //remove decimals, add commas
+                                            else
+                                                tmp_info += d.properties[tmp_var];
                                             tmp_var = "revenue_per_acre";
-                                            tmp_info += "<br/><b>" + "RPA: " + "</b>$" + d.properties[tmp_var] + "/acre";
+                                            tmp_info += "<br/><b>" + "RPA: " + "</b>$";
+                                            if(d.properties[tmp_var] != null) //check null
+                                                tmp_info += Math.round(d.properties[tmp_var]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")  + "/acre"; //remove decimals, add commas
+                                            else
+                                                tmp_info += d.properties[tmp_var] + "/acre";
                                             tmp_var = "revenue_per_applied_water";
-                                            tmp_info += "<br/><b>" + "RPAW: " + "</b>$" + d.properties[tmp_var] + "/AF";
+                                            tmp_info += "<br/><b>" + "RPAW: " + "</b>$";
+                                            if(d.properties[tmp_var] != null) //check null
+                                                tmp_info += Math.round(d.properties[tmp_var]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")  + "/AF"; //remove decimals, add commas
+                                            else
+                                                tmp_info += d.properties[tmp_var] + "/AF";
                                         }
 
                                         var info = tmp_info;
@@ -469,21 +505,41 @@
                                     else {
                                         property = var_selection + '_' + year;
                                     }
-
-                                    //dynamically update the color scale
-                                    var min = json.features[0].properties[property],
+                                    if(analysis_unit == "Revenue") {
+                                        var min = json.features[0].properties[property],
                                             max = json.features[0].properties[property];
-                                    for (var i = 0; i < json.features.length; i++) {
-                                        if (json.features[i].properties[property] < min) {
-                                            min = json.features[i].properties[property];
-                                        }
-                                        if (json.features[i].properties[property] > max) {
-                                            max = json.features[i].properties[property];
-                                        }
-                                    }//find min and max
-                                    color.domain([min, max]);
 
-                                    updateLegend(min, max, var_selection);
+                                        for (var i = 0; i < json.features.length; i++) {
+                                            if (json.features[i].properties[property] < min) {
+                                                min = json.features[i].properties[property];
+                                            }
+                                            if (json.features[i].properties[property] > max) {
+                                                max = json.features[i].properties[property];
+                                            }
+                                        }//find min and max
+                                        color.domain([min, max]);
+
+                                        updateLegend(min, max, var_selection);
+                                    }
+                                    else {
+                                        var min = json.features[0].properties[property],
+                                            max = json.features[0].properties[property];
+
+                                        for (var yr = 1998; yr < 2010; yr++) {
+                                            var loop_prop = var_selection + '_' + yr;
+                                            for (var i = 0; i < json.features.length; i++) {
+                                                if (json.features[i].properties[loop_prop] < min) {
+                                                    min = json.features[i].properties[loop_prop];
+                                                }
+                                                if (json.features[i].properties[loop_prop] > max) {
+                                                    max = json.features[i].properties[loop_prop];
+                                                }
+                                            }//find min and max
+                                        }
+                                        color.domain([min, max]);
+                                        updateLegend(min, max, var_selection);
+                                    }
+                                    //dynamically update the color scale
 
                                     //render again
                                     svg.selectAll("path")
@@ -509,25 +565,6 @@
                             $("#slider").on("slide slideStop", function (slideEvt) {
                                 year = (slideEvt.value);
                                 property = var_selection + '_' + year; //update property
-
-                                //console.log(property);
-
-                                //dynamically update the color scale
-                                var min = json.features[0].properties[property],
-                                        max = json.features[0].properties[property];
-                                for (var i = 0; i < json.features.length; i++) {
-                                    if (json.features[i].properties[property] < min) {
-                                        min = json.features[i].properties[property];
-                                    }
-                                    if (json.features[i].properties[property] > max) {
-                                        max = json.features[i].properties[property];
-                                    }
-                                }//find min and max
-                                color.domain([min, max]);
-
-                                console.log(min);
-                                console.log(max);
-                                updateLegend(min, max, var_selection);
 
                                 //render again
                                 svg.selectAll("path")
