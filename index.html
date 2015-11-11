@@ -95,7 +95,7 @@
                                 <div class="radio">
                                     <label>
                                         <input id="rd3b" name="a_unit_radio" value="Revenue" type="radio">
-                                        Revenue regions</label>
+                                        Revenue Regions</label>
                                 </div>
                             </div>
                         </div>
@@ -283,7 +283,7 @@
                                 $("#rd4").prop("checked", true); //check first option
                                 var mySlider = $("#slider").slider();
                                 $("#slider").slider("enable"); //enable sliding
-                                
+
                                 updateMap(a_unit);
                             }//if nonrevenue selected
 
@@ -435,7 +435,7 @@
                                             tmp_info += "<br/><b>" + "TICA: " + "</b>" + d.properties[tmp_var] + " TA";
                                             tmp_var = "applied_water_per_acre_" + year;
                                             tmp_info += "<br/><b>" + "AWPA: " + "</b>" + d.properties[tmp_var] + " AFPA"
-                                            tmp_var = "evapotranspiration_of_applied_water_" + year;
+                                            tmp_var = "evapotranspiration_of_applied_water_per_acre_" + year;
                                             tmp_info += "<br/><b>" + "ETAW: " + "</b>" + d.properties[tmp_var] + " AFPA"
                                         }
                                         else if(a_unit == "Revenue"){
@@ -587,12 +587,39 @@
                             function updateLegend(min, max, var_selection){
 
                                 for(var i = 1; i <= num_colors; i++) {
-                                    var str = Math.floor(((max-min)/num_colors)*(i-1) + min);
+                                    var calc;
+                                    var str = "";
+
+                                    if(var_selection == "revenue_per_acre" || var_selection == "revenue_per_applied_water"){
+                                        str += '$';
+                                    }//dollar sign
+
+                                    //calculate first half of scale
+                                    calc = Math.floor(((max-min)/num_colors)*(i-1) + min);
+                                    if(var_selection == "total_revenue"){
+                                        calc = Math.round(calc/1000000);
+                                    }//turn to millions of dollars
+                                    str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                                     str += "-";
-                                    if(i < num_colors)
-                                        str += Math.floor(((max - min) / num_colors) * (i) + min - 1);
-                                    else
-                                        str += Math.floor(((max - min) / num_colors) * (i) + min);
+
+                                    if(var_selection == "revenue_per_acre" || var_selection == "revenue_per_applied_water"){
+                                        str += '$';
+                                    }//dollar sign
+
+                                    //calculate second half of scale
+                                    if(i < num_colors) {
+                                        calc = Math.floor(((max - min) / num_colors) * (i) + min - 1);
+                                        if(var_selection == "total_revenue"){
+                                            calc = Math.round(calc/1000000);
+                                        }//turn to millions of dollars
+                                        str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                                    }else {
+                                        calc = Math.floor(((max - min) / num_colors) * (i) + min);
+                                        if(var_selection == "total_revenue"){
+                                            calc = Math.round(calc/1000000);
+                                        }//turn to millions of dollars
+                                        str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                                    }
 
                                     document.getElementById("legendval"+[i]).innerHTML = [str];
                                 }//update intervals
@@ -614,6 +641,15 @@
                                         break;
                                     case "evapotranspiration_of_applied_water_per_acre":
                                         units = "Acre-Foot Per Acre"
+                                        break;
+                                    case "total_revenue":
+                                        units = "Millions Dollars"
+                                        break;
+                                    case "revenue_per_acre":
+                                        units = "$/Acre"
+                                        break;
+                                    case "revenue_per_applied_water":
+                                        units = "$/AF"
                                         break;
                                     default:
                                         units = "Units"
