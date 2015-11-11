@@ -154,10 +154,10 @@
             <!-- Year Slider -->
             <div class="col-md-3">
                 <label class="control-label">Year</label>
-                <input id="slider" type="text" data-slider-min="1998" data-slider-max="2010" data-slider-step="1" data-slider-value="2010">
-                <span id="sliderCurrentSliderValLabel">Selected Year: <span id="sliderSliderVal">2010</span></span>
+                <input id="slider" type="text" data-slider-step="1">
+                <span id="sliderCurrentSliderValLabel">Selected Year: <span id="sliderSliderVal"></span></span>
                 <script>
-                    $("#slider").slider();
+                    //$("#slider").slider();
                     $("#slider").on("slide", function(slideEvt) {
                         $("#sliderSliderVal").text(slideEvt.value);
                      });
@@ -208,6 +208,16 @@
                 </div>
 
                 <script>
+                    //Globals
+                    var RECENT_YEAR = 2010;
+                    //update slider values
+                    $("#slider").slider({
+                        min: 1998,
+                        max: RECENT_YEAR,
+                        value: RECENT_YEAR
+                    });
+                    //update span value for year
+                    document.getElementById("sliderSliderVal").innerHTML=RECENT_YEAR;
                     //Width and height
                     var width = document.getElementById("d3window").offsetWidth;
                     var height = 650;
@@ -223,7 +233,7 @@
                     //variables to access json
                     var a_unit = "HR";
                     var var_selection = "total_water_use";
-                    var year = "2010";
+                    var year = RECENT_YEAR;
                     var property = var_selection + '_' + year;
 
                     //colors for cloropleth
@@ -259,9 +269,9 @@
 
                                 $("#rd8").prop("checked", true); //check first option
                                 var mySlider = $("#slider").slider();
-                                mySlider.slider('setValue', 2010); //set slider val
+                                mySlider.slider('setValue', RECENT_YEAR); //set slider val
                                 $("#slider").slider("disable"); //disable sliding
-                                $("#sliderSliderVal").text(2010);
+                                $("#sliderSliderVal").text(RECENT_YEAR);
 
                                 updateMap(a_unit);
 
@@ -336,7 +346,7 @@
                             else {
                                 var min = json.features[0].properties[property],
                                     max = json.features[0].properties[property];
-                                for (var yr = 1998; yr < 2010; yr++) {
+                                for (var yr = 1998; yr < RECENT_YEAR; yr++) {
 
                                     var loop_prop = var_selection + '_' + yr;
                                     for (var i = 0; i < json.features.length; i++) {
@@ -440,7 +450,7 @@
                                         }
                                         else if(a_unit == "Revenue"){
                                             var tmp_var = "total_revenue";
-                                            tmp_info = "<b>" + "Year: 2010" + "</b>";
+                                            tmp_info = "<b>" + "Year: " + RECENT_YEAR + "</b>";
                                             tmp_info += "<br/><b>" + "TR: " + "</b>$";
                                             if(d.properties[tmp_var] != null) //check null
                                                 tmp_info += Math.round(d.properties[tmp_var]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); //remove decimals, add commas
@@ -525,7 +535,7 @@
                                         var min = json.features[0].properties[property],
                                             max = json.features[0].properties[property];
 
-                                        for (var yr = 1998; yr < 2010; yr++) {
+                                        for (var yr = 1998; yr < RECENT_YEAR; yr++) {
                                             var loop_prop = var_selection + '_' + yr;
                                             for (var i = 0; i < json.features.length; i++) {
                                                 if (json.features[i].properties[loop_prop] < min) {
