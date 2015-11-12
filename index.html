@@ -294,6 +294,21 @@
                                 var mySlider = $("#slider").slider();
                                 $("#slider").slider("enable"); //enable sliding
 
+                                if(a_unit == "PA") {
+                                    mySlider.slider('setValue', RECENT_YEAR); //set slider val
+                                    $("#sliderSliderVal").text(RECENT_YEAR);
+                                    $("#slider").slider({
+                                        min: 1999,
+                                    });
+                                }
+                                else{
+                                    mySlider.slider('setValue', RECENT_YEAR); //set slider val
+                                    $("#sliderSliderVal").text(RECENT_YEAR);
+                                    $("#slider").slider({
+                                        min: 1998,
+                                    });
+                                }
+
                                 updateMap(a_unit);
                             }//if nonrevenue selected
 
@@ -412,6 +427,9 @@
                                         }
                                     })
                                     .on("mouseover", function(d){
+                                        /*if(d == d.properties[0]){
+                                            console.log("FOUND YOU");
+                                        }*/
                                         d3.select(this)
                                                 .attr("fill", "orange");
 
@@ -424,20 +442,20 @@
                                         var full_name;
                                         switch(analysis_unit){
                                             case "HR":
-                                                full_name = "hyrdologic_region";
+                                                full_name = "hyrdologic_region_name";
                                                 break;
                                             case "PA":
-                                                full_name = "planning_area";
+                                                full_name = "planning_area_name";
                                                 break;
                                             case "DAU":
-                                                full_name = "detailed_analysis_unit";
+                                                full_name = "DAU_NAME";
                                                 break;
                                         }
 
                                         var tmp_info = "";
                                         if(a_unit != "Revenue") {
                                             //update tooltip inside text
-                                            var region_name = full_name + "_name"
+                                            var region_name = full_name;// + "_name"
                                             var tmp_var = "total_water_use_" + year;
                                             tmp_info = "<b>" + "Year: " + "</b>" + year;
                                             tmp_info += "<br/><b>" + "TWU: " + "</b>" + d.properties[tmp_var] + " TAF";
@@ -530,7 +548,7 @@
                                         color.domain([min, max]);
 
                                         updateLegend(min, max, var_selection);
-                                    }
+                                    }//if revenue
                                     else {
                                         var min = json.features[0].properties[property],
                                             max = json.features[0].properties[property];
@@ -548,7 +566,8 @@
                                         }
                                         color.domain([min, max]);
                                         updateLegend(min, max, var_selection);
-                                    }
+                                    }//if not revenue
+
                                     //dynamically update the color scale
 
                                     //render again
