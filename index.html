@@ -427,78 +427,81 @@
                                         }
                                     })
                                     .on("mouseover", function(d){
-                                        /*if(d == d.properties[0]){
-                                            console.log("FOUND YOU");
-                                        }*/
-                                        d3.select(this)
-                                                .attr("fill", "orange");
+                                        if(analysis_unit == "Revenue" && d.properties["STATE"] == 06){
+                                            //Do not display orange highlight
+                                        }//if
+                                        else {
 
-                                        //Get this bar's x/y values, then augment for the tooltip
-                                        var cur_width = document.getElementById("d3window").offsetWidth;
-                                        var xPosition = cur_width*0.6;
-                                        var yPosition = 10;
+                                            d3.select(this)
+                                                    .attr("fill", "orange");
 
-                                        //Update the tooltip position and value
-                                        var full_name;
-                                        switch(analysis_unit){
-                                            case "HR":
-                                                full_name = "hyrdologic_region_name";
-                                                break;
-                                            case "PA":
-                                                full_name = "planning_area_name";
-                                                break;
-                                            case "DAU":
-                                                full_name = "DAU_NAME";
-                                                break;
-                                        }
+                                            //Get this bar's x/y values, then augment for the tooltip
+                                            var cur_width = document.getElementById("d3window").offsetWidth;
+                                            var xPosition = cur_width * 0.6;
+                                            var yPosition = 10;
 
-                                        var tmp_info = "";
-                                        if(a_unit != "Revenue") {
-                                            //update tooltip inside text
-                                            var region_name = full_name;// + "_name"
-                                            var tmp_var = "total_water_use_" + year;
-                                            tmp_info = "<b>" + "Year: " + "</b>" + year;
-                                            tmp_info += "<br/><b>" + "TWU: " + "</b>" + d.properties[tmp_var] + " TAF";
-                                            tmp_var = "total_irrigated_crop_area_" + year;
-                                            tmp_info += "<br/><b>" + "TICA: " + "</b>" + d.properties[tmp_var] + " TA";
-                                            tmp_var = "applied_water_per_acre_" + year;
-                                            tmp_info += "<br/><b>" + "AWPA: " + "</b>" + d.properties[tmp_var] + " AFPA"
-                                            tmp_var = "evapotranspiration_of_applied_water_per_acre_" + year;
-                                            tmp_info += "<br/><b>" + "ETAW: " + "</b>" + d.properties[tmp_var] + " AFPA"
-                                        }
-                                        else if(a_unit == "Revenue"){
-                                            var tmp_var = "total_revenue";
-                                            tmp_info = "<b>" + "Year: " + RECENT_YEAR + "</b>";
-                                            tmp_info += "<br/><b>" + "TR: " + "</b>$";
-                                            if(d.properties[tmp_var] != null) //check null
-                                                tmp_info += Math.round(d.properties[tmp_var]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); //remove decimals, add commas
-                                            else
-                                                tmp_info += d.properties[tmp_var];
-                                            tmp_var = "revenue_per_acre";
-                                            tmp_info += "<br/><b>" + "RPA: " + "</b>$";
-                                            if(d.properties[tmp_var] != null) //check null
-                                                tmp_info += Math.round(d.properties[tmp_var]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")  + "/acre"; //remove decimals, add commas
-                                            else
-                                                tmp_info += d.properties[tmp_var] + "/acre";
-                                            tmp_var = "revenue_per_applied_water";
-                                            tmp_info += "<br/><b>" + "RPAW: " + "</b>$";
-                                            if(d.properties[tmp_var] != null) //check null
-                                                tmp_info += Math.round(d.properties[tmp_var]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")  + "/AF"; //remove decimals, add commas
-                                            else
-                                                tmp_info += d.properties[tmp_var] + "/AF";
-                                        }
+                                            //Update the tooltip position and value
+                                            var full_name;
+                                            switch (analysis_unit) {
+                                                case "HR":
+                                                    full_name = "hyrdologic_region_name";
+                                                    break;
+                                                case "PA":
+                                                    full_name = "planning_area_name";
+                                                    break;
+                                                case "DAU":
+                                                    full_name = "DAU_NAME";
+                                                    break;
+                                            }
 
-                                        var info = tmp_info;
+                                            var tmp_info = "";
+                                            if (a_unit != "Revenue") {
+                                                //update tooltip inside text
+                                                var region_name = full_name;// + "_name"
+                                                var tmp_var = "total_water_use_" + year;
+                                                tmp_info = "<b>" + "Year: " + "</b>" + year;
+                                                tmp_info += "<br/><b>" + "TWU: " + "</b>" + Math.round(100*d.properties[tmp_var])/100 + " TAF";
+                                                tmp_var = "total_irrigated_crop_area_" + year;
+                                                tmp_info += "<br/><b>" + "TICA: " + "</b>" + Math.round(100*d.properties[tmp_var])/100 + " TA";
+                                                tmp_var = "applied_water_per_acre_" + year;
+                                                tmp_info += "<br/><b>" + "AWPA: " + "</b>" + Math.round(1000*d.properties[tmp_var])/1000 + " AFPA"
+                                                tmp_var = "evapotranspiration_of_applied_water_per_acre_" + year;
+                                                tmp_info += "<br/><b>" + "ETAW: " + "</b>" + Math.round(1000*d.properties[tmp_var])/1000 + " AFPA"
+                                            }
+                                            else if (a_unit == "Revenue") {
+                                                var tmp_var = "total_revenue";
+                                                tmp_info = "<b>" + "Year: " + RECENT_YEAR + "</b>";
+                                                tmp_info += "<br/><b>" + "TR: " + "</b>$";
+                                                if (d.properties[tmp_var] != null) //check null
+                                                    tmp_info += Math.round(d.properties[tmp_var]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); //remove decimals, add commas
+                                                else
+                                                    tmp_info += d.properties[tmp_var];
+                                                tmp_var = "revenue_per_acre";
+                                                tmp_info += "<br/><b>" + "RPA: " + "</b>$";
+                                                if (d.properties[tmp_var] != null) //check null
+                                                    tmp_info += Math.round(d.properties[tmp_var]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "/acre"; //remove decimals, add commas
+                                                else
+                                                    tmp_info += d.properties[tmp_var] + "/acre";
+                                                tmp_var = "revenue_per_applied_water";
+                                                tmp_info += "<br/><b>" + "RPAW: " + "</b>$";
+                                                if (d.properties[tmp_var] != null) //check null
+                                                    tmp_info += Math.round(d.properties[tmp_var]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "/AF"; //remove decimals, add commas
+                                                else
+                                                    tmp_info += d.properties[tmp_var] + "/AF";
+                                            }
 
-                                        d3.select("#tooltip").select("#title").text( d.properties[region_name]);
-                                        d3.select("#tooltip")
-                                                .style("left", xPosition + "px")
-                                                .style("top", yPosition + "px")
-                                                .select("#value")
-                                                .html(info);
+                                            var info = tmp_info;
 
-                                        //Show the tooltip
-                                        d3.select("#tooltip").classed("hidden", false);
+                                            d3.select("#tooltip").select("#title").text(d.properties[region_name]);
+                                            d3.select("#tooltip")
+                                                    .style("left", xPosition + "px")
+                                                    .style("top", yPosition + "px")
+                                                    .select("#value")
+                                                    .html(info);
+
+                                            //Show the tooltip
+                                            d3.select("#tooltip").classed("hidden", false);
+                                        }//display orange highlight
                                     })
                                     .on("mouseout", function(d){
                                         d3.select(this)
@@ -672,7 +675,7 @@
                                         units = "Acre-Foot Per Acre"
                                         break;
                                     case "total_revenue":
-                                        units = "Millions Dollars"
+                                        units = "Millions of Dollars"
                                         break;
                                     case "revenue_per_acre":
                                         units = "$/Acre"
