@@ -17,6 +17,8 @@
     <script src="bootstrap-slider-master/js/bootstrap-slider.js"></script>
     <!-- d3 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    <!-- spin.js -->
+    <script src="spin_js/spin.js"></script>
 
 
     <link rel="stylesheet" type="text/css" href="style.css">
@@ -326,7 +328,25 @@
                     //Load in GeoJSON data, set callback function
                     function updateMap(analysis_unit)
                     {
+                        //spinner start
+                        var target = document.getElementById('d3window');
+                        var opts = {
+                            lines: 8, // The number of lines to draw
+                            length: 15, // The length of each line
+                            width: 8, // The line thickness
+                            radius: 12, // The radius of the inner circle
+                            color: '#000', // #rgb or #rrggbb or array of colors
+                            speed: 1.0, // Rounds per second
+                            corners: 1, //roundness
+                            trail: 40, // Afterglow percentage
+                            className: 'spinner', // The CSS class to assign to the spinner
+
+                        };
+                        var spinner = new Spinner(opts).spin(target);
+
                         d3.json(analysis_unit + ".geojson", function (json) {
+                            //stop loading spinner
+                            spinner.stop();
 
                             //choose property
                             if(analysis_unit == "Revenue"){
