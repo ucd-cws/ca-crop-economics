@@ -20,6 +20,11 @@
     margin: 5px;
 }
 
+#map {
+    width: 100%;
+    height: 600px;
+}
+
 #units {
     margin: 5px;
 }

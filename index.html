@@ -19,7 +19,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
     <!-- spin.js -->
     <script src="spin_js/spin.js"></script>
-
+    <!-- Leaflet -->
+    <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
 
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
@@ -199,211 +201,386 @@
 
         </div>
 
-        <!-- Render window for d3 -->
-        <div class="row" id="d3window">
-            <div class="col-md-12 bg-white">
+        <!-- Render window for map -->
+        <div class="row" id="map">
+            <div class="col-md-12">
 
+            </div>
+
+        </div>
+
+        <!-- Tooltip -->
+        <div class="row" >
+            <div class="col-md-12">
                 <!-- Tooltip -->
                 <div id="tooltip" class="hidden">
                     <p><strong id="title">Loading...</strong></p>
                     <span id="value"></span>
                 </div>
+            </div>
+        </div>
 
-                <script>
-                    //Globals
-                    var RECENT_YEAR = 2010;
-                    //update slider values
-                    $("#slider").slider({
-                        min: 1998,
-                        max: RECENT_YEAR,
-                        value: RECENT_YEAR
-                    });
-                    //update span value for year
-                    document.getElementById("sliderSliderVal").innerHTML=RECENT_YEAR;
-                    //Width and height
-                    var width = document.getElementById("d3window").offsetWidth;
-                    var height = 650;
+        <!-- Begin Script -->
+        <script>
+            //Globals
+            var RECENT_YEAR = 2010;
+            //update slider values
+            $("#slider").slider({
+                min: 1998,
+                max: RECENT_YEAR,
+                value: RECENT_YEAR
+            });
+            //update span value for year
+            document.getElementById("sliderSliderVal").innerHTML=RECENT_YEAR;
+            //Width and height
+            var width = document.getElementById("map").offsetWidth;
+            //var height = 650;
 
-                    //COLORS
-                    var num_colors = 5;
-                    var color1 = "rgb(237,248,233)";
-                    var color2 = "rgb(186,228,179)";
-                    var color3 = "rgb(116,196,118)";
-                    var color4 = "rgb(49,163,84)";
-                    var color5 = "rgb(0,109,44)";
+            //COLORS
+            var num_colors = 5;
+            var color1 = "rgb(237,248,233)";
+            var color2 = "rgb(186,228,179)";
+            var color3 = "rgb(116,196,118)";
+            var color4 = "rgb(49,163,84)";
+            var color5 = "rgb(0,109,44)";
+            //colors for cloropleth
+            var color = d3.scale.quantize()
+                    .range([ color1, color2, color3, color4, color5]);
+            //show legend colors
+            for(var i = 1; i <= num_colors; i++) {
+                document.getElementById("color_box"+[i]).style.backgroundColor = this["color"+[i]];
+            }
 
-                    //variables to access json
-                    var a_unit = "HR";
-                    var var_selection = "total_water_use";
-                    var year = RECENT_YEAR;
-                    var property = var_selection + '_' + year;
+            //LEAFLET map
+            var OpenStreetMap_Mapnik = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            });
+            var map = new L.Map("map", {center: [37.8, -120.0], zoom: 6})
+                    .addLayer(OpenStreetMap_Mapnik);
+            var svg = d3.select(map.getPanes().overlayPane).append("svg"),
+                    g = svg.append("g").attr("class", "leaflet-zoom-hide");
+            var features = svg.append("g");
 
-                    //colors for cloropleth
-                    var color = d3.scale.quantize()
-                            .range([ color1, color2, color3, color4, color5]);
+            //variables to access json
+            var a_unit = "HR";
+            var var_selection = "total_water_use";
+            var year = RECENT_YEAR;
+            var property = var_selection + '_' + year;
 
-
-                    //show legend colors
-                    for(var i = 1; i <= num_colors; i++) {
-                        document.getElementById("color_box"+[i]).style.backgroundColor = this["color"+[i]];
-                    }
-
-                    //analysis unit radio button listeners
-                    var au = document.getElementsByName('a_unit_radio');
-                    for (var i = au.length; i--;) {
-                        au[i].onchange = function () {
-                            a_unit = this.value;
-                            //d3.select('svg').text('')
-                            d3.selectAll("path").remove();
-                            if(a_unit == "Revenue"){
-                                //hide other buttons
-                                var cols = document.getElementsByClassName('notrev');
-                                for(i=0; i<cols.length; i++) {
-                                    cols[i].style.display = "none";
-                                }
-
-                                //make revenue buttons visible
-                                var cols = document.getElementsByClassName('rev');
-                                for(i=0; i<cols.length; i++) {
-                                    cols[i].style.display = "block";
-                                    cols[i].style.visibility = "visible";
-                                }
-
-                                $("#rd8").prop("checked", true); //check first option
-                                var mySlider = $("#slider").slider();
-                                mySlider.slider('setValue', RECENT_YEAR); //set slider val
-                                $("#slider").slider("disable"); //disable sliding
-                                $("#sliderSliderVal").text(RECENT_YEAR);
-
-                                updateMap(a_unit);
-
-                            }//if revenue selected
-                            else{
-                                //hide revenue buttons
-                                var cols = document.getElementsByClassName('rev');
-                                for(i=0; i<cols.length; i++) {
-                                    cols[i].style.display = "none";
-                                    cols[i].style.visibility = "hidden";
-                                }
-
-                                //make revenue buttons visible
-                                var cols = document.getElementsByClassName('notrev');
-                                for(i=0; i<cols.length; i++) {
-                                    cols[i].style.display = "block";
-                                }
-
-                                $("#rd4").prop("checked", true); //check first option
-                                var mySlider = $("#slider").slider();
-                                $("#slider").slider("enable"); //enable sliding
-
-                                if(a_unit == "PA") {
-                                    mySlider.slider('setValue', RECENT_YEAR); //set slider val
-                                    $("#sliderSliderVal").text(RECENT_YEAR);
-                                    $("#slider").slider({
-                                        min: 1999,
-                                    });
-                                }
-                                else{
-                                    mySlider.slider('setValue', RECENT_YEAR); //set slider val
-                                    $("#sliderSliderVal").text(RECENT_YEAR);
-                                    $("#slider").slider({
-                                        min: 1998,
-                                    });
-                                }
-
-                                updateMap(a_unit);
-                            }//if nonrevenue selected
-
+            //analysis unit radio button listeners
+            var au = document.getElementsByName('a_unit_radio');
+            for (var i = au.length; i--;) {
+                au[i].onchange = function () {
+                    a_unit = this.value;
+                    //d3.select('svg').text('')
+                    d3.selectAll("path").remove();
+                    if(a_unit == "Revenue"){
+                        //hide other buttons
+                        var cols = document.getElementsByClassName('notrev');
+                        for(i=0; i<cols.length; i++) {
+                            cols[i].style.display = "none";
                         }
+
+                        //make revenue buttons visible
+                        var cols = document.getElementsByClassName('rev');
+                        for(i=0; i<cols.length; i++) {
+                            cols[i].style.display = "block";
+                            cols[i].style.visibility = "visible";
+                        }
+
+                        $("#rd8").prop("checked", true); //check first option
+                        var mySlider = $("#slider").slider();
+                        mySlider.slider('setValue', RECENT_YEAR); //set slider val
+                        $("#slider").slider("disable"); //disable sliding
+                        $("#sliderSliderVal").text(RECENT_YEAR);
+
+                        updateMap(a_unit);
+
+                    }//if revenue selected
+                    else{
+                        //hide revenue buttons
+                        var cols = document.getElementsByClassName('rev');
+                        for(i=0; i<cols.length; i++) {
+                            cols[i].style.display = "none";
+                            cols[i].style.visibility = "hidden";
+                        }
+
+                        //make revenue buttons visible
+                        var cols = document.getElementsByClassName('notrev');
+                        for(i=0; i<cols.length; i++) {
+                            cols[i].style.display = "block";
+                        }
+
+                        $("#rd4").prop("checked", true); //check first option
+                        var mySlider = $("#slider").slider();
+                        $("#slider").slider("enable"); //enable sliding
+
+                        if(a_unit == "PA") {
+                            mySlider.slider('setValue', RECENT_YEAR); //set slider val
+                            $("#sliderSliderVal").text(RECENT_YEAR);
+                            $("#slider").slider({
+                                min: 1999,
+                            });
+                        }
+                        else{
+                            mySlider.slider('setValue', RECENT_YEAR); //set slider val
+                            $("#sliderSliderVal").text(RECENT_YEAR);
+                            $("#slider").slider({
+                                min: 1998,
+                            });
+                        }
+
+                        updateMap(a_unit);
+                    }//if nonrevenue selected
+
+                }
+            }
+
+            updateMap(a_unit);
+
+            //Load in GeoJSON data, set callback function
+            function updateMap(analysis_unit)
+            {
+                //spinner start and options
+                var target = document.getElementById('map');
+                var opts = {
+                    lines: 8, // The number of lines to draw
+                    length: 15, // The length of each line
+                    width: 8, // The line thickness
+                    radius: 12, // The radius of the inner circle
+                    color: '#000', // #rgb or #rrggbb or array of colors
+                    speed: 1.0, // Rounds per second
+                    corners: 1, //roundness
+                    trail: 40, // Afterglow percentage
+                    className: 'spinner', // The CSS class to assign to the spinner
+
+                };
+                var spinner = new Spinner(opts).spin(target);
+
+                var hover_opacity = 0.5;
+                var normal_opacity = 0.95;
+
+                d3.json(analysis_unit + ".geojson", function (json) {
+                    //stop loading spinner
+                    spinner.stop();
+
+                    //choose property
+                    if(analysis_unit == "Revenue"){
+                        var_selection = "total_revenue";
+                        property = var_selection;
+                    }
+                    else {
+                        var_selection = "total_water_use";
+                        var mySlider = $("#slider").slider();
+                        year = mySlider.slider('getValue');
+                        property = var_selection + '_' + year;
                     }
 
+                    //Making chloropleth, filling based on data
+                    //update the color scale to account for all years of the property
 
+                    if(analysis_unit == "Revenue") {
+                        var min = json.features[0].properties[property],
+                                max = json.features[0].properties[property];
+                        for (var i = 0; i < json.features.length; i++) {
+                            if (json.features[i].properties[property] < min) {
+                                min = json.features[i].properties[property];
+                            }
+                            if (json.features[i].properties[property] > max) {
+                                max = json.features[i].properties[property];
+                            }
+                        }//find min and max
+                        color.domain([min, max]);
 
-                    //zoom and drag behavior
-                    var zoom = d3.behavior.zoom()
-                            //.translate([0, 0])
-                            .scale(1)
-                            .scaleExtent([1, 6])
-                            .on("zoom", zoomed);
+                        updateLegend(min, max, var_selection);
+                    }
+                    else {
+                        var min = json.features[0].properties[property],
+                                max = json.features[0].properties[property];
+                        for (var yr = 1998; yr < RECENT_YEAR; yr++) {
 
-                    function zoomed() {
-                        features.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-                        //svg.select(".borderline").style("stroke-width", 1.5 / d3.event.scale + "px");
+                            var loop_prop = var_selection + '_' + yr;
+                            for (var i = 0; i < json.features.length; i++) {
+                                if (json.features[i].properties[loop_prop] < min) {
+                                    min = json.features[i].properties[loop_prop];
+                                }
+                                if (json.features[i].properties[loop_prop] > max) {
+                                    max = json.features[i].properties[loop_prop];
+                                }
+                            }//find min and max
+                        }
+                        color.domain([min, max]);
+                        updateLegend(min, max, var_selection);
                     }
 
-                    /*function dragstarted(d) {
-                        d3.event.sourceEvent.stopPropagation();
-                        d3.select(this).classed("dragging", true);
+                    //Create one path per GeoJSON feature, SVG rendering
+                    var transform = d3.geo.transform({point: projectPoint}),
+                            path = d3.geo.path().projection(transform);
+                    var feature = g.selectAll("path")
+                            .data(json.features)
+                            .enter().append("path")
+                            .attr("d", path)
+                            .attr("class", "borderline")
+                            .attr("stroke", "#555")
+                            .attr("stroke-width", "0.6px")
+                            .attr("fill", function (d) {
+                                //Get data value
+                                var value = d.properties[property];
+
+                                if (value) {
+                                    //If value exists…
+                                    return color(value);
+                                } else {
+                                    //If value is undefined…
+                                    return "#ccc";
+                                }
+                            })
+                            .style("opacity", normal_opacity)
+                            .on("mouseover", function(d){
+                                if(analysis_unit == "Revenue" && d.properties["STATE"] == 06){
+                                    //Do not display orange highlight
+                                }//if
+                                else {
+
+                                    d3.select(this)
+                                            .attr("fill", "orange")
+                                            .style("opacity", hover_opacity);
+
+                                    //change cursor
+                                    $('.leaflet-container').css('cursor','pointer');
+
+                                    //Get this bar's x/y values, then augment for the tooltip
+                                    var cur_width = document.getElementById("map").offsetWidth;
+                                    var cur_height = document.getElementById("map").offsetHeight;
+                                    var xPosition = cur_width * 0.75;
+                                    var yPosition = -cur_height + 40;
+
+                                    //Update the tooltip position and value
+                                    var full_name;
+                                    switch (analysis_unit) {
+                                        case "HR":
+                                            full_name = "hyrdologic_region_name";
+                                            break;
+                                        case "PA":
+                                            full_name = "planning_area_name";
+                                            break;
+                                        case "DAU":
+                                            full_name = "DAU_NAME";
+                                            break;
+                                    }
+
+                                    var tmp_info = "";
+                                    if (a_unit != "Revenue") {
+                                        //update tooltip inside text
+                                        var region_name = full_name;// + "_name"
+                                        var tmp_var = "total_water_use_" + year;
+                                        tmp_info = "<b>" + "Year: " + "</b>" + year;
+                                        tmp_info += "<br/><b>" + "TWU: " + "</b>" + Math.round(100*d.properties[tmp_var])/100 + " TAF";
+                                        tmp_var = "total_irrigated_crop_area_" + year;
+                                        tmp_info += "<br/><b>" + "TICA: " + "</b>" + Math.round(100*d.properties[tmp_var])/100 + " TA";
+                                        tmp_var = "applied_water_per_acre_" + year;
+                                        tmp_info += "<br/><b>" + "AWPA: " + "</b>" + Math.round(1000*d.properties[tmp_var])/1000 + " AFPA"
+                                        tmp_var = "evapotranspiration_of_applied_water_per_acre_" + year;
+                                        tmp_info += "<br/><b>" + "ETAW: " + "</b>" + Math.round(1000*d.properties[tmp_var])/1000 + " AFPA"
+                                    }
+                                    else if (a_unit == "Revenue") {
+                                        var tmp_var = "total_revenue";
+                                        tmp_info = "<b>" + "Year: " + RECENT_YEAR + "</b>";
+                                        tmp_info += "<br/><b>" + "TR: " + "</b>$";
+                                        if (d.properties[tmp_var] != null) //check null
+                                            tmp_info += Math.round(d.properties[tmp_var]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); //remove decimals, add commas
+                                        else
+                                            tmp_info += d.properties[tmp_var];
+                                        tmp_var = "revenue_per_acre";
+                                        tmp_info += "<br/><b>" + "RPA: " + "</b>$";
+                                        if (d.properties[tmp_var] != null) //check null
+                                            tmp_info += Math.round(d.properties[tmp_var]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "/acre"; //remove decimals, add commas
+                                        else
+                                            tmp_info += d.properties[tmp_var] + "/acre";
+                                        tmp_var = "revenue_per_applied_water";
+                                        tmp_info += "<br/><b>" + "RPAW: " + "</b>$";
+                                        if (d.properties[tmp_var] != null) //check null
+                                            tmp_info += Math.round(d.properties[tmp_var]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "/AF"; //remove decimals, add commas
+                                        else
+                                            tmp_info += d.properties[tmp_var] + "/AF";
+                                    }
+
+                                    var info = tmp_info;
+
+                                    d3.select("#tooltip").select("#title").text(d.properties[region_name]);
+                                    d3.select("#tooltip")
+                                            .style("left", xPosition + "px")
+                                            .style("top", yPosition + "px")
+                                            .select("#value")
+                                            .html(info);
+
+                                    //Show the tooltip
+                                    d3.select("#tooltip").classed("hidden", false);
+                                }//display orange highlight
+                            })
+                            .on("mouseout", function(d){
+                                //reset cursor
+                                $('.leaflet-container').css('cursor','');
+                                d3.select(this)
+                                        .transition()
+                                        .duration(250)
+                                        .style("opacity", normal_opacity)
+                                        .attr("fill", function (d) {
+                                            //Get data value
+                                            var value = d.properties[property];
+
+                                            if (value) {
+                                                //If value exists…
+                                                return color(value);
+                                            } else {
+                                                //If value is undefined…
+                                                return "#ccc";
+                                            }
+                                        })
+                                //Hide the tooltip
+                                d3.select("#tooltip").classed("hidden", true);
+                            });
+
+                    map.on("viewreset", reset);
+                    reset();
+
+                    function reset() {
+                        var bounds = path.bounds(json),
+                                topLeft = bounds[0],
+                                bottomRight = bounds[1];
+
+                        svg .attr("width", bottomRight[0] - topLeft[0])
+                                .attr("height", bottomRight[1] - topLeft[1])
+                                .style("left", topLeft[0] + "px")
+                                .style("top", topLeft[1] + "px");
+
+                        g   .attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
+
+                        feature.attr("d", path);
                     }
 
-                    function dragged(d) {
-                        d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+                    function projectPoint(x, y) {
+                        var point = map.latLngToLayerPoint(new L.LatLng(y, x));
+                        this.stream.point(point.x, point.y);
                     }
 
-                    function dragended(d) {
-                        d3.select(this).classed("dragging", false);
-                    }*/
+                    //update values to be displayed based on what is selected
+                    //User changed "Variables"
+                    var ch = document.getElementsByName('variables');
+                    for (var i = ch.length; i--;) {
+                        ch[i].onchange = function () {
+                            var_selection = this.value;
 
-                    //Create SVG element
-                    var svg = d3.select("#d3window")
-                            .append("svg")
-                            .attr("width", width)
-                            .attr("height", height);
-
-                    var features = svg.append("g");
-
-                    // add a rectangle to see the bound of the svg
-                    svg.append("rect")
-                            .attr('width', width)
-                            .attr('height', height)
-                            .style('stroke', "#222")
-                            .style('fill', 'none');
-                            //.style('pointer-events', 'all')
-                            //.call(zoom);
-
-                    updateMap(a_unit);
-
-                    //Load in GeoJSON data, set callback function
-                    function updateMap(analysis_unit)
-                    {
-                        //spinner start
-                        var target = document.getElementById('d3window');
-                        var opts = {
-                            lines: 8, // The number of lines to draw
-                            length: 15, // The length of each line
-                            width: 8, // The line thickness
-                            radius: 12, // The radius of the inner circle
-                            color: '#000', // #rgb or #rrggbb or array of colors
-                            speed: 1.0, // Rounds per second
-                            corners: 1, //roundness
-                            trail: 40, // Afterglow percentage
-                            className: 'spinner', // The CSS class to assign to the spinner
-
-                        };
-                        var spinner = new Spinner(opts).spin(target);
-
-                        d3.json(analysis_unit + ".geojson", function (json) {
-                            //stop loading spinner
-                            spinner.stop();
-
-                            //choose property
-                            if(analysis_unit == "Revenue"){
-                                var_selection = "total_revenue";
+                            if(a_unit == "Revenue"){
                                 property = var_selection;
                             }
                             else {
-                                var_selection = "total_water_use";
-                                var mySlider = $("#slider").slider();
-                                year = mySlider.slider('getValue');
                                 property = var_selection + '_' + year;
                             }
-
-                            //Making chloropleth, filling based on data
-                            //update the color scale to account for all years of the property
-
                             if(analysis_unit == "Revenue") {
                                 var min = json.features[0].properties[property],
-                                    max = json.features[0].properties[property];
+                                        max = json.features[0].properties[property];
+
                                 for (var i = 0; i < json.features.length; i++) {
                                     if (json.features[i].properties[property] < min) {
                                         min = json.features[i].properties[property];
@@ -415,12 +592,12 @@
                                 color.domain([min, max]);
 
                                 updateLegend(min, max, var_selection);
-                            }
+                            }//if revenue
                             else {
                                 var min = json.features[0].properties[property],
-                                    max = json.features[0].properties[property];
-                                for (var yr = 1998; yr < RECENT_YEAR; yr++) {
+                                        max = json.features[0].properties[property];
 
+                                for (var yr = 1998; yr < RECENT_YEAR; yr++) {
                                     var loop_prop = var_selection + '_' + yr;
                                     for (var i = 0; i < json.features.length; i++) {
                                         if (json.features[i].properties[loop_prop] < min) {
@@ -433,49 +610,14 @@
                                 }
                                 color.domain([min, max]);
                                 updateLegend(min, max, var_selection);
-                            }
+                            }//if not revenue
 
-                            //Map Making
-                            var center = d3.geo.centroid(json);
-                            var scale = 3000;
-                            var offset = [width / 2, height / 2];
-                            var projection = d3.geo.mercator()
-                                    .translate(offset)
-                                    .center(center)
-                                    .scale(scale);
+                            //dynamically update the color scale
 
-                            //Define path generator
-                            var path = d3.geo.path().projection(projection);
-
-                            // using the path determine the bounds of the current map and use
-                            // these to determine better values for the scale and translation
-                            var bounds = path.bounds(json);
-                            var hscale = scale * width / (bounds[1][0] - bounds[0][0]);
-                            var vscale = scale * height / (bounds[1][1] - bounds[0][1]);
-                            var scale = ( (hscale < vscale) ? hscale : vscale ) - 200;
-                            //console.log(scale);
-                            offset = [width - (bounds[0][0] + bounds[1][0]) / 2,
-                                height - (bounds[0][1] + bounds[1][1]) / 2];
-
-                            // new projection
-                            projection = d3.geo.mercator()
-                                    .center(center).scale(scale).translate(offset);
-
-                            path = path.projection(projection);
-
-                            //initiate zoom behavior
-                            svg.call(zoom);
-
-                            //Create one path per GeoJSON feature, SVG rendering
-                            //svg.selectAll("path")
-                            features.selectAll("path")
-                                    .data(json.features)
-                                    .enter()
-                                    .append("path")
-                                    .attr("d", path)
-                                    .attr("class", "borderline")
-                                    .attr("stroke", "#555")
-                                    .attr("stroke-width", "0.6px")
+                            //render again
+                            svg.selectAll("path")
+                                    .transition()
+                                    .duration(100)
                                     .attr("fill", function (d) {
                                         //Get data value
                                         var value = d.properties[property];
@@ -487,281 +629,114 @@
                                             //If value is undefined…
                                             return "#ccc";
                                         }
-                                    })
-                                    .on("mouseover", function(d){
-                                        if(analysis_unit == "Revenue" && d.properties["STATE"] == 06){
-                                            //Do not display orange highlight
-                                        }//if
-                                        else {
-
-                                            d3.select(this)
-                                                    .attr("fill", "orange");
-
-                                            //Get this bar's x/y values, then augment for the tooltip
-                                            var cur_width = document.getElementById("d3window").offsetWidth;
-                                            var xPosition = cur_width * 0.6;
-                                            var yPosition = 10;
-
-                                            //Update the tooltip position and value
-                                            var full_name;
-                                            switch (analysis_unit) {
-                                                case "HR":
-                                                    full_name = "hyrdologic_region_name";
-                                                    break;
-                                                case "PA":
-                                                    full_name = "planning_area_name";
-                                                    break;
-                                                case "DAU":
-                                                    full_name = "DAU_NAME";
-                                                    break;
-                                            }
-
-                                            var tmp_info = "";
-                                            if (a_unit != "Revenue") {
-                                                //update tooltip inside text
-                                                var region_name = full_name;// + "_name"
-                                                var tmp_var = "total_water_use_" + year;
-                                                tmp_info = "<b>" + "Year: " + "</b>" + year;
-                                                tmp_info += "<br/><b>" + "TWU: " + "</b>" + Math.round(100*d.properties[tmp_var])/100 + " TAF";
-                                                tmp_var = "total_irrigated_crop_area_" + year;
-                                                tmp_info += "<br/><b>" + "TICA: " + "</b>" + Math.round(100*d.properties[tmp_var])/100 + " TA";
-                                                tmp_var = "applied_water_per_acre_" + year;
-                                                tmp_info += "<br/><b>" + "AWPA: " + "</b>" + Math.round(1000*d.properties[tmp_var])/1000 + " AFPA"
-                                                tmp_var = "evapotranspiration_of_applied_water_per_acre_" + year;
-                                                tmp_info += "<br/><b>" + "ETAW: " + "</b>" + Math.round(1000*d.properties[tmp_var])/1000 + " AFPA"
-                                            }
-                                            else if (a_unit == "Revenue") {
-                                                var tmp_var = "total_revenue";
-                                                tmp_info = "<b>" + "Year: " + RECENT_YEAR + "</b>";
-                                                tmp_info += "<br/><b>" + "TR: " + "</b>$";
-                                                if (d.properties[tmp_var] != null) //check null
-                                                    tmp_info += Math.round(d.properties[tmp_var]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); //remove decimals, add commas
-                                                else
-                                                    tmp_info += d.properties[tmp_var];
-                                                tmp_var = "revenue_per_acre";
-                                                tmp_info += "<br/><b>" + "RPA: " + "</b>$";
-                                                if (d.properties[tmp_var] != null) //check null
-                                                    tmp_info += Math.round(d.properties[tmp_var]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "/acre"; //remove decimals, add commas
-                                                else
-                                                    tmp_info += d.properties[tmp_var] + "/acre";
-                                                tmp_var = "revenue_per_applied_water";
-                                                tmp_info += "<br/><b>" + "RPAW: " + "</b>$";
-                                                if (d.properties[tmp_var] != null) //check null
-                                                    tmp_info += Math.round(d.properties[tmp_var]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "/AF"; //remove decimals, add commas
-                                                else
-                                                    tmp_info += d.properties[tmp_var] + "/AF";
-                                            }
-
-                                            var info = tmp_info;
-
-                                            d3.select("#tooltip").select("#title").text(d.properties[region_name]);
-                                            d3.select("#tooltip")
-                                                    .style("left", xPosition + "px")
-                                                    .style("top", yPosition + "px")
-                                                    .select("#value")
-                                                    .html(info);
-
-                                            //Show the tooltip
-                                            d3.select("#tooltip").classed("hidden", false);
-                                        }//display orange highlight
-                                    })
-                                    .on("mouseout", function(d){
-                                        d3.select(this)
-                                                .transition()
-                                                .duration(250)
-                                                .attr("fill", function (d) {
-                                                    //Get data value
-                                                    var value = d.properties[property];
-
-                                                    if (value) {
-                                                        //If value exists…
-                                                        return color(value);
-                                                    } else {
-                                                        //If value is undefined…
-                                                        return "#ccc";
-                                                    }
-                                                })
-                                        //Hide the tooltip
-                                        d3.select("#tooltip").classed("hidden", true);
                                     });
-                                    //.call(zoom);
+                        }
+                    }
 
-                            //update values to be displayed based on what is selected
-                            //User changed "Variables"
-                            var ch = document.getElementsByName('variables');
-                            for (var i = ch.length; i--;) {
-                                ch[i].onchange = function () {
-                                    var_selection = this.value;
 
-                                    if(a_unit == "Revenue"){
-                                        property = var_selection;
+                    //User changed "Year"
+                    $("#slider").on("slide slideStop", function (slideEvt) {
+                        year = (slideEvt.value);
+                        property = var_selection + '_' + year; //update property
+
+                        //render again
+                        svg.selectAll("path")
+                                //.transition()
+                                //.duration(100)
+                                .attr("fill", function (d) {
+                                    //Get data value
+                                    var value = d.properties[property];
+
+                                    if (value) {
+                                        //If value exists…
+                                        return color(value);
+                                    } else {
+                                        //If value is undefined…
+                                        return "#ccc";
                                     }
-                                    else {
-                                        property = var_selection + '_' + year;
-                                    }
-                                    if(analysis_unit == "Revenue") {
-                                        var min = json.features[0].properties[property],
-                                            max = json.features[0].properties[property];
+                                });
+                    });
 
-                                        for (var i = 0; i < json.features.length; i++) {
-                                            if (json.features[i].properties[property] < min) {
-                                                min = json.features[i].properties[property];
-                                            }
-                                            if (json.features[i].properties[property] > max) {
-                                                max = json.features[i].properties[property];
-                                            }
-                                        }//find min and max
-                                        color.domain([min, max]);
+                    function updateLegend(min, max, var_selection){
 
-                                        updateLegend(min, max, var_selection);
-                                    }//if revenue
-                                    else {
-                                        var min = json.features[0].properties[property],
-                                            max = json.features[0].properties[property];
+                        for(var i = 1; i <= num_colors; i++) {
+                            var calc;
+                            var str = "";
 
-                                        for (var yr = 1998; yr < RECENT_YEAR; yr++) {
-                                            var loop_prop = var_selection + '_' + yr;
-                                            for (var i = 0; i < json.features.length; i++) {
-                                                if (json.features[i].properties[loop_prop] < min) {
-                                                    min = json.features[i].properties[loop_prop];
-                                                }
-                                                if (json.features[i].properties[loop_prop] > max) {
-                                                    max = json.features[i].properties[loop_prop];
-                                                }
-                                            }//find min and max
-                                        }
-                                        color.domain([min, max]);
-                                        updateLegend(min, max, var_selection);
-                                    }//if not revenue
+                            if(var_selection == "revenue_per_acre" || var_selection == "revenue_per_applied_water"){
+                                str += '$';
+                            }//dollar sign
 
-                                    //dynamically update the color scale
+                            //calculate first half of scale
+                            calc = Math.floor(((max-min)/num_colors)*(i-1) + min);
+                            if(var_selection == "total_revenue"){
+                                calc = Math.round(calc/1000000);
+                            }//turn to millions of dollars
+                            str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                            str += "-";
 
-                                    //render again
-                                    svg.selectAll("path")
-                                            .transition()
-                                            .duration(100)
-                                            .attr("fill", function (d) {
-                                                //Get data value
-                                                var value = d.properties[property];
+                            if(var_selection == "revenue_per_acre" || var_selection == "revenue_per_applied_water"){
+                                str += '$';
+                            }//dollar sign
 
-                                                if (value) {
-                                                    //If value exists…
-                                                    return color(value);
-                                                } else {
-                                                    //If value is undefined…
-                                                    return "#ccc";
-                                                }
-                                            });
-                                }
+                            //calculate second half of scale
+                            if(i < num_colors) {
+                                calc = Math.floor(((max - min) / num_colors) * (i) + min - 1);
+                                if(var_selection == "total_revenue"){
+                                    calc = Math.round(calc/1000000);
+                                }//turn to millions of dollars
+                                str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                            }else {
+                                calc = Math.floor(((max - min) / num_colors) * (i) + min);
+                                if(var_selection == "total_revenue"){
+                                    calc = Math.round(calc/1000000);
+                                }//turn to millions of dollars
+                                str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                             }
 
+                            document.getElementById("legendval"+[i]).innerHTML = [str];
+                        }//update intervals
 
-                            //User changed "Year"
-                            $("#slider").on("slide slideStop", function (slideEvt) {
-                                year = (slideEvt.value);
-                                property = var_selection + '_' + year; //update property
+                        //update units
+                        var units;
+                        if(var_selection == "total_water_use"){
+                            units = "Thousand Acre Feet";
+                        }
+                        switch(var_selection){
+                            case "total_water_use":
+                                units = "Thousand Acre Feet";
+                                break;
+                            case "total_irrigated_crop_area":
+                                units = "Thousand Acre";
+                                break;
+                            case "applied_water_per_acre":
+                                units = "Acre-Foot Per Acre"
+                                break;
+                            case "evapotranspiration_of_applied_water_per_acre":
+                                units = "Acre-Foot Per Acre"
+                                break;
+                            case "total_revenue":
+                                units = "Millions of Dollars"
+                                break;
+                            case "revenue_per_acre":
+                                units = "$/Acre"
+                                break;
+                            case "revenue_per_applied_water":
+                                units = "$/AF"
+                                break;
+                            default:
+                                units = "Units"
 
-                                //render again
-                                svg.selectAll("path")
-                                        //.transition()
-                                        //.duration(100)
-                                        .attr("fill", function (d) {
-                                            //Get data value
-                                            var value = d.properties[property];
+                        }
+                        document.getElementById("units").innerHTML = '*' + units;
+                    }//update legend intervals and units
 
-                                            if (value) {
-                                                //If value exists…
-                                                return color(value);
-                                            } else {
-                                                //If value is undefined…
-                                                return "#ccc";
-                                            }
-                                        });
-                            });
+                }); //load analysis unit
 
-                            function updateLegend(min, max, var_selection){
-
-                                for(var i = 1; i <= num_colors; i++) {
-                                    var calc;
-                                    var str = "";
-
-                                    if(var_selection == "revenue_per_acre" || var_selection == "revenue_per_applied_water"){
-                                        str += '$';
-                                    }//dollar sign
-
-                                    //calculate first half of scale
-                                    calc = Math.floor(((max-min)/num_colors)*(i-1) + min);
-                                    if(var_selection == "total_revenue"){
-                                        calc = Math.round(calc/1000000);
-                                    }//turn to millions of dollars
-                                    str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                                    str += "-";
-
-                                    if(var_selection == "revenue_per_acre" || var_selection == "revenue_per_applied_water"){
-                                        str += '$';
-                                    }//dollar sign
-
-                                    //calculate second half of scale
-                                    if(i < num_colors) {
-                                        calc = Math.floor(((max - min) / num_colors) * (i) + min - 1);
-                                        if(var_selection == "total_revenue"){
-                                            calc = Math.round(calc/1000000);
-                                        }//turn to millions of dollars
-                                        str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                                    }else {
-                                        calc = Math.floor(((max - min) / num_colors) * (i) + min);
-                                        if(var_selection == "total_revenue"){
-                                            calc = Math.round(calc/1000000);
-                                        }//turn to millions of dollars
-                                        str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                                    }
-
-                                    document.getElementById("legendval"+[i]).innerHTML = [str];
-                                }//update intervals
-
-                                //update units
-                                var units;
-                                if(var_selection == "total_water_use"){
-                                    units = "Thousand Acre Feet";
-                                }
-                                switch(var_selection){
-                                    case "total_water_use":
-                                        units = "Thousand Acre Feet";
-                                        break;
-                                    case "total_irrigated_crop_area":
-                                        units = "Thousand Acre";
-                                        break;
-                                    case "applied_water_per_acre":
-                                        units = "Acre-Foot Per Acre"
-                                        break;
-                                    case "evapotranspiration_of_applied_water_per_acre":
-                                        units = "Acre-Foot Per Acre"
-                                        break;
-                                    case "total_revenue":
-                                        units = "Millions of Dollars"
-                                        break;
-                                    case "revenue_per_acre":
-                                        units = "$/Acre"
-                                        break;
-                                    case "revenue_per_applied_water":
-                                        units = "$/AF"
-                                        break;
-                                    default:
-                                        units = "Units"
-
-                                }
-                                document.getElementById("units").innerHTML = '*' + units;
-                            }//update legend intervals and units
-
-                        }); //load analysis unit
-
-                    }//updateMap()
+            }//updateMap()
 
 
-                </script>
-
-            </div>
-        </div>
+        </script>
 
     </div>
 
