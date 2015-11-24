@@ -237,14 +237,21 @@
             //var height = 650;
             //COLORS
             var num_colors = 5;
-            var color1 = "rgb(237,248,233)";
+            /*var color1 = "rgb(237,248,233)";
             var color2 = "rgb(186,228,179)";
             var color3 = "rgb(116,196,118)";
             var color4 = "rgb(49,163,84)";
-            var color5 = "rgb(0,109,44)";
+            var color5 = "rgb(0,109,44)";*/
+            var color1 = "rgb(250,0,0)";
+            var color2 = "rgb(250,250,0)";
+            var color3 = "rgb(0,250,250)";
+            var color4 = "rgb(0,0,250)";
+            var color5 = "rgb(250,0,255)";
             //colors for cloropleth
-            var color = d3.scale.quantize()
-                    .range([ color1, color2, color3, color4, color5]);
+
+            var color = d3.scale.quantize();
+            //var color;
+
             //show legend colors
             for(var i = 1; i <= num_colors; i++) {
                 document.getElementById("color_box"+[i]).style.backgroundColor = this["color"+[i]];
@@ -323,6 +330,7 @@
                 }
             }
             updateMap(a_unit);
+
             //Load in GeoJSON data, set callback function
             function updateMap(analysis_unit)
             {
@@ -342,6 +350,8 @@
                 var spinner = new Spinner(opts).spin(target);
                 var hover_opacity = 0.5;
                 var normal_opacity = 0.95;
+
+                //Load GeoJSON
                 d3.json(analysis_unit + ".geojson", function (json) {
                     //stop loading spinner
                     spinner.stop();
@@ -356,39 +366,10 @@
                         year = mySlider.slider('getValue');
                         property = var_selection + '_' + year;
                     }
-                    //Making chloropleth, filling based on data
+
                     //update the color scale to account for all years of the property
-                    if(analysis_unit == "Revenue") {
-                        var min = json.features[0].properties[property],
-                                max = json.features[0].properties[property];
-                        for (var i = 0; i < json.features.length; i++) {
-                            if (json.features[i].properties[property] < min) {
-                                min = json.features[i].properties[property];
-                            }
-                            if (json.features[i].properties[property] > max) {
-                                max = json.features[i].properties[property];
-                            }
-                        }//find min and max
-                        color.domain([min, max]);
-                        updateLegend(min, max, var_selection);
-                    }
-                    else {
-                        var min = json.features[0].properties[property],
-                                max = json.features[0].properties[property];
-                        for (var yr = 1998; yr < RECENT_YEAR; yr++) {
-                            var loop_prop = var_selection + '_' + yr;
-                            for (var i = 0; i < json.features.length; i++) {
-                                if (json.features[i].properties[loop_prop] < min) {
-                                    min = json.features[i].properties[loop_prop];
-                                }
-                                if (json.features[i].properties[loop_prop] > max) {
-                                    max = json.features[i].properties[loop_prop];
-                                }
-                            }//find min and max
-                        }
-                        color.domain([min, max]);
-                        updateLegend(min, max, var_selection);
-                    }
+                    updateScale();
+
                     //Create one path per GeoJSON feature, SVG rendering
                     var transform = d3.geo.transform({point: projectPoint}),
                             path = d3.geo.path().projection(transform);
@@ -523,7 +504,7 @@
                         var point = map.latLngToLayerPoint(new L.LatLng(y, x));
                         this.stream.point(point.x, point.y);
                     }
-                    //update values to be displayed based on what is selected
+
                     //User changed "Variables"
                     var ch = document.getElementsByName('variables');
                     for (var i = ch.length; i--;) {
@@ -535,39 +516,11 @@
                             else {
                                 property = var_selection + '_' + year;
                             }
-                            if(analysis_unit == "Revenue") {
-                                var min = json.features[0].properties[property],
-                                        max = json.features[0].properties[property];
-                                for (var i = 0; i < json.features.length; i++) {
-                                    if (json.features[i].properties[property] < min) {
-                                        min = json.features[i].properties[property];
-                                    }
-                                    if (json.features[i].properties[property] > max) {
-                                        max = json.features[i].properties[property];
-                                    }
-                                }//find min and max
-                                color.domain([min, max]);
-                                updateLegend(min, max, var_selection);
-                            }//if revenue
-                            else {
-                                var min = json.features[0].properties[property],
-                                        max = json.features[0].properties[property];
-                                for (var yr = 1998; yr < RECENT_YEAR; yr++) {
-                                    var loop_prop = var_selection + '_' + yr;
-                                    for (var i = 0; i < json.features.length; i++) {
-                                        if (json.features[i].properties[loop_prop] < min) {
-                                            min = json.features[i].properties[loop_prop];
-                                        }
-                                        if (json.features[i].properties[loop_prop] > max) {
-                                            max = json.features[i].properties[loop_prop];
-                                        }
-                                    }//find min and max
-                                }
-                                color.domain([min, max]);
-                                updateLegend(min, max, var_selection);
-                            }//if not revenue
-                            //dynamically update the color scale
-                            //render again
+
+                            //create new scale for newly selected variable
+                            updateScale();
+
+                            //refresh fill values
                             svg.selectAll("path")
                                     .transition()
                                     .duration(100)
@@ -584,6 +537,7 @@
                                     });
                         }
                     }
+
                     //User changed "Year"
                     $("#slider").on("slide slideStop", function (slideEvt) {
                         year = (slideEvt.value);
@@ -604,6 +558,54 @@
                                     }
                                 });
                     });
+
+                    function updateScale(){
+                        if(analysis_unit == "Revenue") {
+                            var min = json.features[0].properties[property],
+                                    max = json.features[0].properties[property];
+                            for (var i = 0; i < json.features.length; i++) {
+                                if (json.features[i].properties[property] < min) {
+                                    min = json.features[i].properties[property];
+                                }
+                                if (json.features[i].properties[property] > max) {
+                                    max = json.features[i].properties[property];
+                                }
+                            }//find min and max
+
+                            var t1 = min, t2 = null, t3 = null, t4 = null, t5 = max;
+
+                            color = d3.scale.threshold()
+                                    .domain([min, max])
+                                    .range([ color1, color2, color3, color4, color5]);
+                            updateLegend(min, max, var_selection);
+                        }//if revenue
+                        else {
+                            var min = json.features[0].properties[property],
+                                    max = json.features[0].properties[property];
+                            for (var yr = 1998; yr < RECENT_YEAR; yr++) {
+
+                                console.log(analysis_unit);
+                                //if(var)
+                                var loop_prop = var_selection + '_' + yr;
+                                for (var i = 0; i < json.features.length; i++) {
+                                    if (json.features[i].properties[loop_prop] < min) {
+                                        min = json.features[i].properties[loop_prop];
+                                    }
+                                    if (json.features[i].properties[loop_prop] > max) {
+                                        max = json.features[i].properties[loop_prop];
+                                    }
+                                }//find min and max
+                            }//search across all years
+
+                            var t1 = min, t2 = null, t3 = null, t4 = null, t5 = max;
+
+                            color = d3.scale.quantize()
+                                    .domain([min, max])
+                                    .range([ color1, color2, color3, color4, color5]);
+                            updateLegend(min, max, var_selection);
+                        }//if not revenue
+                    }//make scale
+
                     function updateLegend(min, max, var_selection){
                         for(var i = 1; i <= num_colors; i++) {
                             var calc;
