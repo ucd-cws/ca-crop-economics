@@ -164,7 +164,7 @@
                     //$("#slider").slider();
                     $("#slider").on("slide", function(slideEvt) {
                         $("#sliderSliderVal").text(slideEvt.value);
-                     });
+                    });
                 </script>
             </div>
 
@@ -202,8 +202,8 @@
         </div>
 
         <!-- Render window for map -->
-        <div class="row" id="map">
-            <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12" id="map">
 
             </div>
 
@@ -235,7 +235,6 @@
             //Width and height
             var width = document.getElementById("map").offsetWidth;
             //var height = 650;
-
             //COLORS
             var num_colors = 5;
             var color1 = "rgb(237,248,233)";
@@ -250,7 +249,6 @@
             for(var i = 1; i <= num_colors; i++) {
                 document.getElementById("color_box"+[i]).style.backgroundColor = this["color"+[i]];
             }
-
             //LEAFLET map
             var OpenStreetMap_Mapnik = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -260,13 +258,11 @@
             var svg = d3.select(map.getPanes().overlayPane).append("svg"),
                     g = svg.append("g").attr("class", "leaflet-zoom-hide");
             var features = svg.append("g");
-
             //variables to access json
             var a_unit = "HR";
             var var_selection = "total_water_use";
             var year = RECENT_YEAR;
             var property = var_selection + '_' + year;
-
             //analysis unit radio button listeners
             var au = document.getElementsByName('a_unit_radio');
             for (var i = au.length; i--;) {
@@ -280,22 +276,18 @@
                         for(i=0; i<cols.length; i++) {
                             cols[i].style.display = "none";
                         }
-
                         //make revenue buttons visible
                         var cols = document.getElementsByClassName('rev');
                         for(i=0; i<cols.length; i++) {
                             cols[i].style.display = "block";
                             cols[i].style.visibility = "visible";
                         }
-
                         $("#rd8").prop("checked", true); //check first option
                         var mySlider = $("#slider").slider();
                         mySlider.slider('setValue', RECENT_YEAR); //set slider val
                         $("#slider").slider("disable"); //disable sliding
                         $("#sliderSliderVal").text(RECENT_YEAR);
-
                         updateMap(a_unit);
-
                     }//if revenue selected
                     else{
                         //hide revenue buttons
@@ -304,17 +296,14 @@
                             cols[i].style.display = "none";
                             cols[i].style.visibility = "hidden";
                         }
-
                         //make revenue buttons visible
                         var cols = document.getElementsByClassName('notrev');
                         for(i=0; i<cols.length; i++) {
                             cols[i].style.display = "block";
                         }
-
                         $("#rd4").prop("checked", true); //check first option
                         var mySlider = $("#slider").slider();
                         $("#slider").slider("enable"); //enable sliding
-
                         if(a_unit == "PA") {
                             mySlider.slider('setValue', RECENT_YEAR); //set slider val
                             $("#sliderSliderVal").text(RECENT_YEAR);
@@ -329,15 +318,11 @@
                                 min: 1998,
                             });
                         }
-
                         updateMap(a_unit);
                     }//if nonrevenue selected
-
                 }
             }
-
             updateMap(a_unit);
-
             //Load in GeoJSON data, set callback function
             function updateMap(analysis_unit)
             {
@@ -353,17 +338,13 @@
                     corners: 1, //roundness
                     trail: 40, // Afterglow percentage
                     className: 'spinner', // The CSS class to assign to the spinner
-
                 };
                 var spinner = new Spinner(opts).spin(target);
-
                 var hover_opacity = 0.5;
                 var normal_opacity = 0.95;
-
                 d3.json(analysis_unit + ".geojson", function (json) {
                     //stop loading spinner
                     spinner.stop();
-
                     //choose property
                     if(analysis_unit == "Revenue"){
                         var_selection = "total_revenue";
@@ -375,10 +356,8 @@
                         year = mySlider.slider('getValue');
                         property = var_selection + '_' + year;
                     }
-
                     //Making chloropleth, filling based on data
                     //update the color scale to account for all years of the property
-
                     if(analysis_unit == "Revenue") {
                         var min = json.features[0].properties[property],
                                 max = json.features[0].properties[property];
@@ -391,14 +370,12 @@
                             }
                         }//find min and max
                         color.domain([min, max]);
-
                         updateLegend(min, max, var_selection);
                     }
                     else {
                         var min = json.features[0].properties[property],
                                 max = json.features[0].properties[property];
                         for (var yr = 1998; yr < RECENT_YEAR; yr++) {
-
                             var loop_prop = var_selection + '_' + yr;
                             for (var i = 0; i < json.features.length; i++) {
                                 if (json.features[i].properties[loop_prop] < min) {
@@ -412,7 +389,6 @@
                         color.domain([min, max]);
                         updateLegend(min, max, var_selection);
                     }
-
                     //Create one path per GeoJSON feature, SVG rendering
                     var transform = d3.geo.transform({point: projectPoint}),
                             path = d3.geo.path().projection(transform);
@@ -426,7 +402,6 @@
                             .attr("fill", function (d) {
                                 //Get data value
                                 var value = d.properties[property];
-
                                 if (value) {
                                     //If value exists…
                                     return color(value);
@@ -441,20 +416,16 @@
                                     //Do not display orange highlight
                                 }//if
                                 else {
-
                                     d3.select(this)
                                             .attr("fill", "orange")
                                             .style("opacity", hover_opacity);
-
                                     //change cursor
                                     $('.leaflet-container').css('cursor','pointer');
-
                                     //Get this bar's x/y values, then augment for the tooltip
                                     var cur_width = document.getElementById("map").offsetWidth;
                                     var cur_height = document.getElementById("map").offsetHeight;
                                     var xPosition = cur_width * 0.75;
                                     var yPosition = -cur_height + 40;
-
                                     //Update the tooltip position and value
                                     var full_name;
                                     switch (analysis_unit) {
@@ -468,7 +439,6 @@
                                             full_name = "DAU_NAME";
                                             break;
                                     }
-
                                     var tmp_info = "";
                                     if (a_unit != "Revenue") {
                                         //update tooltip inside text
@@ -504,16 +474,13 @@
                                         else
                                             tmp_info += d.properties[tmp_var] + "/AF";
                                     }
-
                                     var info = tmp_info;
-
                                     d3.select("#tooltip").select("#title").text(d.properties[region_name]);
                                     d3.select("#tooltip")
                                             .style("left", xPosition + "px")
                                             .style("top", yPosition + "px")
                                             .select("#value")
                                             .html(info);
-
                                     //Show the tooltip
                                     d3.select("#tooltip").classed("hidden", false);
                                 }//display orange highlight
@@ -528,7 +495,6 @@
                                         .attr("fill", function (d) {
                                             //Get data value
                                             var value = d.properties[property];
-
                                             if (value) {
                                                 //If value exists…
                                                 return color(value);
@@ -540,37 +506,29 @@
                                 //Hide the tooltip
                                 d3.select("#tooltip").classed("hidden", true);
                             });
-
                     map.on("viewreset", reset);
                     reset();
-
                     function reset() {
                         var bounds = path.bounds(json),
                                 topLeft = bounds[0],
                                 bottomRight = bounds[1];
-
                         svg .attr("width", bottomRight[0] - topLeft[0])
                                 .attr("height", bottomRight[1] - topLeft[1])
                                 .style("left", topLeft[0] + "px")
                                 .style("top", topLeft[1] + "px");
-
                         g   .attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
-
                         feature.attr("d", path);
                     }
-
                     function projectPoint(x, y) {
                         var point = map.latLngToLayerPoint(new L.LatLng(y, x));
                         this.stream.point(point.x, point.y);
                     }
-
                     //update values to be displayed based on what is selected
                     //User changed "Variables"
                     var ch = document.getElementsByName('variables');
                     for (var i = ch.length; i--;) {
                         ch[i].onchange = function () {
                             var_selection = this.value;
-
                             if(a_unit == "Revenue"){
                                 property = var_selection;
                             }
@@ -580,7 +538,6 @@
                             if(analysis_unit == "Revenue") {
                                 var min = json.features[0].properties[property],
                                         max = json.features[0].properties[property];
-
                                 for (var i = 0; i < json.features.length; i++) {
                                     if (json.features[i].properties[property] < min) {
                                         min = json.features[i].properties[property];
@@ -590,13 +547,11 @@
                                     }
                                 }//find min and max
                                 color.domain([min, max]);
-
                                 updateLegend(min, max, var_selection);
                             }//if revenue
                             else {
                                 var min = json.features[0].properties[property],
                                         max = json.features[0].properties[property];
-
                                 for (var yr = 1998; yr < RECENT_YEAR; yr++) {
                                     var loop_prop = var_selection + '_' + yr;
                                     for (var i = 0; i < json.features.length; i++) {
@@ -611,9 +566,7 @@
                                 color.domain([min, max]);
                                 updateLegend(min, max, var_selection);
                             }//if not revenue
-
                             //dynamically update the color scale
-
                             //render again
                             svg.selectAll("path")
                                     .transition()
@@ -621,7 +574,6 @@
                                     .attr("fill", function (d) {
                                         //Get data value
                                         var value = d.properties[property];
-
                                         if (value) {
                                             //If value exists…
                                             return color(value);
@@ -632,13 +584,10 @@
                                     });
                         }
                     }
-
-
                     //User changed "Year"
                     $("#slider").on("slide slideStop", function (slideEvt) {
                         year = (slideEvt.value);
                         property = var_selection + '_' + year; //update property
-
                         //render again
                         svg.selectAll("path")
                                 //.transition()
@@ -646,7 +595,6 @@
                                 .attr("fill", function (d) {
                                     //Get data value
                                     var value = d.properties[property];
-
                                     if (value) {
                                         //If value exists…
                                         return color(value);
@@ -656,17 +604,13 @@
                                     }
                                 });
                     });
-
                     function updateLegend(min, max, var_selection){
-
                         for(var i = 1; i <= num_colors; i++) {
                             var calc;
                             var str = "";
-
                             if(var_selection == "revenue_per_acre" || var_selection == "revenue_per_applied_water"){
                                 str += '$';
                             }//dollar sign
-
                             //calculate first half of scale
                             calc = Math.floor(((max-min)/num_colors)*(i-1) + min);
                             if(var_selection == "total_revenue"){
@@ -674,11 +618,9 @@
                             }//turn to millions of dollars
                             str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                             str += "-";
-
                             if(var_selection == "revenue_per_acre" || var_selection == "revenue_per_applied_water"){
                                 str += '$';
                             }//dollar sign
-
                             //calculate second half of scale
                             if(i < num_colors) {
                                 calc = Math.floor(((max - min) / num_colors) * (i) + min - 1);
@@ -693,10 +635,8 @@
                                 }//turn to millions of dollars
                                 str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                             }
-
                             document.getElementById("legendval"+[i]).innerHTML = [str];
                         }//update intervals
-
                         //update units
                         var units;
                         if(var_selection == "total_water_use"){
@@ -726,16 +666,11 @@
                                 break;
                             default:
                                 units = "Units"
-
                         }
                         document.getElementById("units").innerHTML = '*' + units;
                     }//update legend intervals and units
-
                 }); //load analysis unit
-
             }//updateMap()
-
-
         </script>
 
     </div>
