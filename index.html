@@ -237,16 +237,16 @@
             //var height = 650;
             //COLORS
             var num_colors = 5;
-            /*var color1 = "rgb(237,248,233)";
+            var color1 = "rgb(237,248,233)";
             var color2 = "rgb(186,228,179)";
             var color3 = "rgb(116,196,118)";
             var color4 = "rgb(49,163,84)";
-            var color5 = "rgb(0,109,44)";*/
-            var color1 = "rgb(250,0,0)";
+            var color5 = "rgb(0,109,44)";
+            /*var color1 = "rgb(250,0,0)";
             var color2 = "rgb(250,250,0)";
             var color3 = "rgb(0,250,250)";
             var color4 = "rgb(0,0,250)";
-            var color5 = "rgb(250,0,255)";
+            var color5 = "rgb(250,0,255)";*/
             //colors for cloropleth
 
             var color = d3.scale.quantize();
@@ -561,84 +561,186 @@
 
                     function updateScale(){
                         if(analysis_unit == "Revenue") {
+                            var sort_ar = [];
                             var min = json.features[0].properties[property],
                                     max = json.features[0].properties[property];
-                            for (var i = 0; i < json.features.length; i++) {
-                                if (json.features[i].properties[property] < min) {
-                                    min = json.features[i].properties[property];
-                                }
-                                if (json.features[i].properties[property] > max) {
-                                    max = json.features[i].properties[property];
-                                }
-                            }//find min and max
 
-                            var t1 = min, t2 = null, t3 = null, t4 = null, t5 = max;
+                                for (var i = 0; i < json.features.length; i++) {
+                                    if (json.features[i].properties[property] < min) {
+                                        min = json.features[i].properties[property];
+                                    }//find min
+                                    if (json.features[i].properties[property] > max) {
+                                        max = json.features[i].properties[property];
+                                    }//find max
+
+                                    if(json.features[i].properties[loop_prop] != 0 && json.features[i].properties[property] != null) {
+                                        sort_ar.push(json.features[i].properties[property]); //push to sorting ar
+                                    }
+                                }//loop through json features
+
+
+
+                            var t1 = null, t2 = null, t3 = null, t4 = null;
+
+                            //sort values of property for all regions
+                            sort_ar.sort(function(x,y){return x - y});
+                            console.log(sort_ar.toString());
+                            for (var i = Math.round(sort_ar.length/num_colors); i < sort_ar.length; i+=Math.round(sort_ar.length/(num_colors))) {
+                                if(t1 == null){
+                                    t1 = sort_ar[i];
+                                    console.log("set1 to sort_ar[" + i + "]" + sort_ar[i]);
+                                }
+                                else if(t2 == null){
+                                    t2 = sort_ar[i];
+                                    console.log("set2");
+                                }
+                                else if(t3 == null){
+                                    t3 = sort_ar[i];
+                                    console.log("set3");
+                                }
+                                else if(t4 == null){
+                                    t4 = sort_ar[i];
+                                    console.log("set4");
+                                }
+
+                            }//find thresholds for each bucket
+                            console.log("FIN");
+
 
                             color = d3.scale.threshold()
-                                    .domain([min, max])
+                                    .domain([t1, t2, t3, t4])
                                     .range([ color1, color2, color3, color4, color5]);
-                            updateLegend(min, max, var_selection);
+                            t1 = Math.round(100*t1)/100;
+                            t2 = Math.round(100*t2)/100;
+                            t3 = Math.round(100*t3)/100;
+                            t4 = Math.round(100*t4)/100;
+                            console.log("Thresholds: T1:" + t1 + " T2:" + t2 + " T3:" + t3 + " T4:" + t4);
+
+                            var t_ar = [t1, t2, t3, t4];
+                            updateLegend(min, max, t_ar, var_selection);
                         }//if revenue
                         else {
+                            var sort_ar = [];
                             var min = json.features[0].properties[property],
-                                    max = json.features[0].properties[property];
+                                max = json.features[0].properties[property];
                             for (var yr = 1998; yr < RECENT_YEAR; yr++) {
 
-                                console.log(analysis_unit);
-                                //if(var)
+                                if((yr == 1998) && (analysis_unit == "PA")){
+                                    yr = 1999;
+                                }//no data for 1998, need to bump
+
                                 var loop_prop = var_selection + '_' + yr;
+
                                 for (var i = 0; i < json.features.length; i++) {
                                     if (json.features[i].properties[loop_prop] < min) {
                                         min = json.features[i].properties[loop_prop];
-                                    }
+                                    }//find min
                                     if (json.features[i].properties[loop_prop] > max) {
                                         max = json.features[i].properties[loop_prop];
+                                    }//find max
+
+                                    if(json.features[i].properties[loop_prop] != 0 && json.features[i].properties[loop_prop] != null) {
+                                        sort_ar.push(json.features[i].properties[loop_prop]); //push to sorting ar
                                     }
-                                }//find min and max
+                                }//loop through json features
+
                             }//search across all years
 
-                            var t1 = min, t2 = null, t3 = null, t4 = null, t5 = max;
+                            var t1 = null, t2 = null, t3 = null, t4 = null;
 
-                            color = d3.scale.quantize()
-                                    .domain([min, max])
+                            //sort values of property for all regions
+                            sort_ar.sort(function(x,y){return x - y});
+                            console.log(sort_ar.toString());
+                            for (var i = Math.round(sort_ar.length/num_colors); i < sort_ar.length; i+=Math.round(sort_ar.length/(num_colors))) {
+                                if(t1 == null){
+                                    t1 = sort_ar[i];
+                                    console.log("set1 to sort_ar[" + i + "]" + sort_ar[i]);
+                                }
+                                else if(t2 == null){
+                                    t2 = sort_ar[i];
+                                    console.log("set2");
+                                }
+                                else if(t3 == null){
+                                    t3 = sort_ar[i];
+                                    console.log("set3");
+                                }
+                                else if(t4 == null){
+                                    t4 = sort_ar[i];
+                                    console.log("set4");
+                                }
+
+                            }//find thresholds for each bucket
+                            console.log("FIN");
+
+
+                            color = d3.scale.threshold()
+                                    .domain([t1, t2, t3, t4])
                                     .range([ color1, color2, color3, color4, color5]);
-                            updateLegend(min, max, var_selection);
+                            t1 = Math.round(100*t1)/100;
+                            t2 = Math.round(100*t2)/100;
+                            t3 = Math.round(100*t3)/100;
+                            t4 = Math.round(100*t4)/100;
+                            //console.log("Thresholds: T1:" + t1 + " T2:" + t2 + " T3:" + t3 + " T4:" + t4);
+                            var t_ar = [t1, t2, t3, t4];
+                            updateLegend(min, max, t_ar, var_selection);
                         }//if not revenue
                     }//make scale
 
-                    function updateLegend(min, max, var_selection){
+                    //takes in a min, max, an array of thresholds, and the variable selection
+                    function updateLegend(min, max, t_ar, var_selection){
                         for(var i = 1; i <= num_colors; i++) {
                             var calc;
                             var str = "";
+
+                            if(var_selection == "revenue_per_acre" || var_selection == "revenue_per_applied_water"){
+                                str += '$';
+                            }//append dollar sign for revenue
+                            //calculate first half of interval (LEFT)
+                            if(i == 1){
+                                calc = min;
+                            }//if first section of threshold
+                            else{
+                                calc = t_ar[i - 2];
+                            }//get threshold
+                            if(var_selection == "total_revenue"){
+                                calc = Math.round(calc/1000000);
+                            }//if total revenue, turn to millions of dollars
+                            else{
+                                calc = Math.round(calc);
+                            }//just round
+                            str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); //add commas every thousandths
+
+                            str += "-"; //to
+
                             if(var_selection == "revenue_per_acre" || var_selection == "revenue_per_applied_water"){
                                 str += '$';
                             }//dollar sign
-                            //calculate first half of scale
-                            calc = Math.floor(((max-min)/num_colors)*(i-1) + min);
+                            //calculate second half of scale (RIGHT)
+                            if(i < num_colors) {
+                                if((i == 1) && (Math.round(min) != Math.round(t_ar[i-1]))){
+                                    calc = t_ar[i - 1] - 1;
+                                }//for first index, check left != right
+                                else if((i > 1) && (Math.round(t_ar[i - 2]) != Math.round(t_ar[i - 1]))) {
+                                    calc = t_ar[i - 1] - 1;
+                                }//for rest if left side does not equal right
+                                else {
+                                    calc = t_ar[i - 1];
+                                }//else leave it
+                            }//not last legend value
+                            else {
+                                calc = max;
+                            }//last legend value
                             if(var_selection == "total_revenue"){
                                 calc = Math.round(calc/1000000);
                             }//turn to millions of dollars
+                            else{
+                                calc = Math.round(calc);
+                            }//just round
                             str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                            str += "-";
-                            if(var_selection == "revenue_per_acre" || var_selection == "revenue_per_applied_water"){
-                                str += '$';
-                            }//dollar sign
-                            //calculate second half of scale
-                            if(i < num_colors) {
-                                calc = Math.floor(((max - min) / num_colors) * (i) + min - 1);
-                                if(var_selection == "total_revenue"){
-                                    calc = Math.round(calc/1000000);
-                                }//turn to millions of dollars
-                                str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                            }else {
-                                calc = Math.floor(((max - min) / num_colors) * (i) + min);
-                                if(var_selection == "total_revenue"){
-                                    calc = Math.round(calc/1000000);
-                                }//turn to millions of dollars
-                                str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                            }
-                            document.getElementById("legendval"+[i]).innerHTML = [str];
+
+                            document.getElementById("legendval"+[i]).innerHTML = [str]; //update html
                         }//update intervals
+
                         //update units
                         var units;
                         if(var_selection == "total_water_use"){
@@ -670,9 +772,13 @@
                                 units = "Units"
                         }
                         document.getElementById("units").innerHTML = '*' + units;
-                    }//update legend intervals and units
+
+                    }//updateLegend()
+
                 }); //load analysis unit
+
             }//updateMap()
+
         </script>
 
     </div>
