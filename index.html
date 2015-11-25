@@ -72,7 +72,7 @@
         <h2>California Crop Economics</h2>
 
         <!-- Control bar -->
-        <div class="row bg-info">
+        <div class="row control">
 
             <!-- Analysis Unit Control-->
             <div class="col-md-3">
@@ -171,7 +171,7 @@
             <!-- Legend -->
             <div class="col-md-3">
                 <label class="control-label">Legend</label>
-                <div class="bg-white" id="legend">
+                <div class="bg-offwhite" id="legend">
                     <div class = "legend_row">
                         <div class="color_box" id="color_box1" style="background-color:#13b4ff"></div>
                         <label id="legendval1">Loading...</label>
@@ -411,10 +411,10 @@
                                     var full_name;
                                     switch (analysis_unit) {
                                         case "HR":
-                                            full_name = "hyrdologic_region_name";
+                                            full_name = "FIRST_HRNA";
                                             break;
                                         case "PA":
-                                            full_name = "planning_area_name";
+                                            full_name = "pa_name";
                                             break;
                                         case "DAU":
                                             full_name = "DAU_NAME";
@@ -584,27 +584,22 @@
 
                             //sort values of property for all regions
                             sort_ar.sort(function(x,y){return x - y});
-                            console.log(sort_ar.toString());
+
                             for (var i = Math.round(sort_ar.length/num_colors); i < sort_ar.length; i+=Math.round(sort_ar.length/(num_colors))) {
                                 if(t1 == null){
                                     t1 = sort_ar[i];
-                                    console.log("set1 to sort_ar[" + i + "]" + sort_ar[i]);
                                 }
                                 else if(t2 == null){
                                     t2 = sort_ar[i];
-                                    console.log("set2");
                                 }
                                 else if(t3 == null){
                                     t3 = sort_ar[i];
-                                    console.log("set3");
                                 }
                                 else if(t4 == null){
                                     t4 = sort_ar[i];
-                                    console.log("set4");
                                 }
 
                             }//find thresholds for each bucket
-                            console.log("FIN");
 
 
                             color = d3.scale.threshold()
@@ -614,7 +609,6 @@
                             t2 = Math.round(100*t2)/100;
                             t3 = Math.round(100*t3)/100;
                             t4 = Math.round(100*t4)/100;
-                            console.log("Thresholds: T1:" + t1 + " T2:" + t2 + " T3:" + t3 + " T4:" + t4);
 
                             var t_ar = [t1, t2, t3, t4];
                             updateLegend(min, max, t_ar, var_selection);
@@ -650,27 +644,21 @@
 
                             //sort values of property for all regions
                             sort_ar.sort(function(x,y){return x - y});
-                            console.log(sort_ar.toString());
                             for (var i = Math.round(sort_ar.length/num_colors); i < sort_ar.length; i+=Math.round(sort_ar.length/(num_colors))) {
                                 if(t1 == null){
                                     t1 = sort_ar[i];
-                                    console.log("set1 to sort_ar[" + i + "]" + sort_ar[i]);
                                 }
                                 else if(t2 == null){
                                     t2 = sort_ar[i];
-                                    console.log("set2");
                                 }
                                 else if(t3 == null){
                                     t3 = sort_ar[i];
-                                    console.log("set3");
                                 }
                                 else if(t4 == null){
                                     t4 = sort_ar[i];
-                                    console.log("set4");
                                 }
 
                             }//find thresholds for each bucket
-                            console.log("FIN");
 
 
                             color = d3.scale.threshold()
@@ -680,7 +668,7 @@
                             t2 = Math.round(100*t2)/100;
                             t3 = Math.round(100*t3)/100;
                             t4 = Math.round(100*t4)/100;
-                            //console.log("Thresholds: T1:" + t1 + " T2:" + t2 + " T3:" + t3 + " T4:" + t4);
+
                             var t_ar = [t1, t2, t3, t4];
                             updateLegend(min, max, t_ar, var_selection);
                         }//if not revenue
@@ -692,53 +680,93 @@
                             var calc;
                             var str = "";
 
-                            if(var_selection == "revenue_per_acre" || var_selection == "revenue_per_applied_water"){
-                                str += '$';
-                            }//append dollar sign for revenue
-                            //calculate first half of interval (LEFT)
-                            if(i == 1){
-                                calc = min;
-                            }//if first section of threshold
-                            else{
-                                calc = t_ar[i - 2];
-                            }//get threshold
-                            if(var_selection == "total_revenue"){
-                                calc = Math.round(calc/1000000);
-                            }//if total revenue, turn to millions of dollars
-                            else{
-                                calc = Math.round(calc);
-                            }//just round
-                            str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); //add commas every thousandths
-
-                            str += "-"; //to
-
-                            if(var_selection == "revenue_per_acre" || var_selection == "revenue_per_applied_water"){
-                                str += '$';
-                            }//dollar sign
-                            //calculate second half of scale (RIGHT)
-                            if(i < num_colors) {
-                                if((i == 1) && (Math.round(min) != Math.round(t_ar[i-1]))){
-                                    calc = t_ar[i - 1] - 1;
-                                }//for first index, check left != right
-                                else if((i > 1) && (Math.round(t_ar[i - 2]) != Math.round(t_ar[i - 1]))) {
-                                    calc = t_ar[i - 1] - 1;
-                                }//for rest if left side does not equal right
+                            if(var_selection == "applied_water_per_acre" || var_selection == "evapotranspiration_of_applied_water_per_acre"){
+                                //calculate first half of interval (LEFT)
+                                if (i == 1) {
+                                    calc = min;
+                                }//if first section of threshold
                                 else {
-                                    calc = t_ar[i - 1];
-                                }//else leave it
-                            }//not last legend value
-                            else {
-                                calc = max;
-                            }//last legend value
-                            if(var_selection == "total_revenue"){
-                                calc = Math.round(calc/1000000);
-                            }//turn to millions of dollars
-                            else{
-                                calc = Math.round(calc);
-                            }//just round
-                            str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                                    calc = t_ar[i - 2];
+                                }//get threshold
 
-                            document.getElementById("legendval"+[i]).innerHTML = [str]; //update html
+                                calc = Math.round(calc*100)/100;
+
+                                str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); //add commas every thousandths
+
+                                str += "-"; //to
+
+                                //calculate second half of scale (RIGHT)
+                                if (i < num_colors) {
+                                    if ((i == 1) && (Math.round(min*100)/100 != Math.round(t_ar[i - 1]*100)/100)) {
+                                        calc = t_ar[i - 1] - 0.01;
+                                    }//for first index, check left != right
+                                    else if ((i > 1) && (Math.round(t_ar[i - 2]*100)/100 != Math.round(t_ar[i - 1]*100)/100)) {
+                                        calc = t_ar[i - 1] - 0.01;
+                                    }//for rest if left side does not equal right
+                                    else {
+                                        calc = t_ar[i - 1];
+                                    }//else leave it
+                                }//not last legend value
+                                else {
+                                    calc = max;
+                                }//last legend value
+
+                                calc = Math.round(calc*100)/100;
+
+                                str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+                                document.getElementById("legendval" + [i]).innerHTML = [str]; //update html
+                            }// do -0.01 intervaling
+                            else {
+                                if (var_selection == "revenue_per_acre" || var_selection == "revenue_per_applied_water") {
+                                    str += '$';
+                                }//append dollar sign for revenue
+                                //calculate first half of interval (LEFT)
+                                if (i == 1) {
+                                    calc = min;
+                                }//if first section of threshold
+                                else {
+                                    calc = t_ar[i - 2];
+                                }//get threshold
+                                if (var_selection == "total_revenue") {
+                                    calc = Math.round(calc / 1000000);
+                                }//if total revenue, turn to millions of dollars
+                                else {
+                                    calc = Math.round(calc);
+                                }//just round
+                                str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); //add commas every thousandths
+
+                                str += "-"; //to
+
+                                if (var_selection == "revenue_per_acre" || var_selection == "revenue_per_applied_water") {
+                                    str += '$';
+                                }//dollar sign
+                                //calculate second half of scale (RIGHT)
+                                if (i < num_colors) {
+                                    if ((i == 1) && (Math.round(min) != Math.round(t_ar[i - 1]))) {
+                                        calc = t_ar[i - 1] - 1;
+                                    }//for first index, check left != right
+                                    else if ((i > 1) && (Math.round(t_ar[i - 2]) != Math.round(t_ar[i - 1]))) {
+                                        calc = t_ar[i - 1] - 1;
+                                    }//for rest if left side does not equal right
+                                    else {
+                                        calc = t_ar[i - 1];
+                                    }//else leave it
+                                }//not last legend value
+                                else {
+                                    calc = max;
+                                }//last legend value
+                                if (var_selection == "total_revenue") {
+                                    calc = Math.round(calc / 1000000);
+                                }//turn to millions of dollars
+                                else {
+                                    calc = Math.round(calc);
+                                }//just round
+                                str += calc.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+                                document.getElementById("legendval" + [i]).innerHTML = [str]; //update html
+                            }//do normal -1 intervaling
+
                         }//update intervals
 
                         //update units
