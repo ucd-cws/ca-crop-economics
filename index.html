@@ -134,17 +134,17 @@
                                         <input id="rd7" name="variables" value="evapotranspiration_of_applied_water_per_acre" type="radio">
                                         ET of Applied Water Per Acre</label>
                                 </div>
-                                <div class="radio rev" style="visibility:hidden">
+                                <div class="radio rev" style="visibility:hidden; display:none">
                                     <label>
                                         <input id="rd8" name="variables" value="total_revenue" type="radio">
                                         Total Revenue</label>
                                 </div>
-                                <div class="radio rev" style="visibility:hidden;">
+                                <div class="radio rev" style="visibility:hidden;display:none;">
                                     <label>
                                         <input id="rd9" name="variables" value="revenue_per_acre" type="radio">
                                         Revenue Per Acre</label>
                                 </div>
-                                <div class="radio rev" style="visibility:hidden;">
+                                <div class="radio rev" style="visibility:hidden;display:none;">
                                     <label>
                                         <input id="rd10" name="variables" value="revenue_per_applied_water" type="radio">
                                         Revenue Per Applied Water</label>
@@ -373,6 +373,16 @@
                     //Create one path per GeoJSON feature, SVG rendering
                     var transform = d3.geo.transform({point: projectPoint}),
                             path = d3.geo.path().projection(transform);
+
+                    //rseponsive behavior
+                    var event;
+                    if($("#map").width() > 500){
+                        event = "mouseover";
+                    }//larger screen
+                    else{
+                        event = "click";
+                    }//mobile
+
                     var feature = g.selectAll("path")
                             .data(json.features)
                             .enter().append("path")
@@ -392,7 +402,7 @@
                                 }
                             })
                             .style("opacity", normal_opacity)
-                            .on("mouseover", function(d){
+                            .on(event,  function(d){
                                 if(analysis_unit == "Revenue" && d.properties["STATE"] == 06){
                                     //Do not display orange highlight
                                 }//if
@@ -403,9 +413,9 @@
                                     //change cursor
                                     $('.leaflet-container').css('cursor','pointer');
                                     //Get this bar's x/y values, then augment for the tooltip
-                                    var cur_width = document.getElementById("map").offsetWidth;
+                                    var cur_width = $("#map").width();
                                     var cur_height = document.getElementById("map").offsetHeight;
-                                    var xPosition = cur_width * 0.75;
+                                    var xPosition = (cur_width - 160) * 0.75;
                                     var yPosition = -cur_height + 40;
                                     //Update the tooltip position and value
                                     var full_name;

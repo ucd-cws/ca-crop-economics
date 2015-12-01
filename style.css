@@ -23,6 +23,11 @@
 .control{
     background-color: #f5f5f5;
     padding-top:10px;
+    padding-bottom:15px;
+}
+
+input[type='radio'] {
+    transform: scale(1.5);
 }
 
 #map {
