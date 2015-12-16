@@ -26,6 +26,18 @@
     padding-bottom:15px;
 }
 
+.radio input {
+	visibility:hidden; 
+	width:0;
+}
+
+.radio label:hover, .radio input:checked + label {
+	background: #d7ebf3; 
+	font-weight:bold;
+}
+
+
+
 input[type='radio'] {
     transform: scale(1.5);
 }
